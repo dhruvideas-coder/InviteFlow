@@ -134,7 +134,7 @@
                             </div>
 
                             <!-- Page navigation overlay -->
-                            <div v-if="pdfTotalPages > 1" class="absolute bottom-6 left-0 right-0 flex justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div v-if="pdfTotalPages > 1" class="absolute bottom-6 left-0 right-0 flex justify-center pointer-events-none opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
                                 <div class="flex items-center gap-2 bg-slate-900/90 backdrop-blur-md rounded-2xl px-4 py-2 pointer-events-auto shadow-2xl">
                                     <button @click="prevPage" :disabled="currentPage === 1"
                                         class="p-1.5 text-white/70 hover:text-white disabled:opacity-30 transition-colors">
@@ -252,8 +252,8 @@ function nextPage() { if (currentPage.value < pdfTotalPages.value) currentPage.v
 
 // ── Canvas Scaling ──────────────────────────────────────────
 const canvasContainerRef = ref(null);
-const canvasW = ref(700);
-const pdfAspectRatio = ref(1);
+const canvasW = ref(Math.min(700, window.innerWidth - 32));
+const pdfAspectRatio = ref(1.414);
 const canvasH = computed(() => Math.round(canvasW.value * pdfAspectRatio.value));
 
 function onPdfRendered({ width, height }) {

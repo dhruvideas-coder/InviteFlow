@@ -150,21 +150,21 @@
             <div v-if="previewTarget" class="modal-overlay" @click.self="previewTarget = null">
                 <div class="modal max-w-4xl w-full p-0 overflow-hidden bg-[#F8FAFC]">
                     <!-- Modal Header -->
-                    <div class="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between sticky top-0 z-10">
-                        <div>
-                            <h3 class="font-bold text-gray-900 leading-tight">{{ previewTarget.name }}</h3>
+                    <div class="px-4 sm:px-6 py-3 sm:py-4 bg-white border-b border-slate-200 flex items-center justify-between sticky top-0 z-10">
+                        <div class="min-w-0 mr-3">
+                            <h3 class="font-bold text-gray-900 leading-tight truncate text-sm sm:text-base">{{ previewTarget.name }}</h3>
                             <p class="text-[10px] text-gray-500 font-medium uppercase tracking-wider mt-0.5">Template Preview • {{ previewTarget.file_type.toUpperCase() }}</p>
                         </div>
-                        <button @click="previewTarget = null" class="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                        <button @click="previewTarget = null" class="p-2 hover:bg-gray-100 rounded-xl transition-colors shrink-0">
                             <X class="w-5 h-5 text-gray-400" />
                         </button>
                     </div>
 
                     <!-- Modal Body (Canvas) -->
-                    <div class="p-6 overflow-y-auto max-h-[calc(90vh-70px)]">
-                        <div 
+                    <div class="p-3 sm:p-6 overflow-y-auto max-h-[calc(100dvh-120px)] sm:max-h-[calc(90vh-70px)]">
+                        <div
                             ref="canvasContainerRef"
-                            class="relative bg-white rounded-2xl shadow-xl border border-slate-200/50 overflow-hidden mx-auto flex items-center justify-center min-h-[400px]"
+                            class="relative bg-white rounded-2xl shadow-xl border border-slate-200/50 overflow-hidden mx-auto flex items-center justify-center min-h-[250px] sm:min-h-[400px]"
                         >
                             <div 
                                 id="preview-area"
@@ -212,7 +212,7 @@
                                 </div>
 
                                 <!-- Page navigation overlay -->
-                                <div v-if="pdfTotalPages > 1" class="absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none">
+                                <div v-if="pdfTotalPages > 1" class="absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none opacity-100">
                                     <div class="flex items-center gap-2 bg-slate-900/90 backdrop-blur-md rounded-2xl px-4 py-1.5 pointer-events-auto shadow-2xl">
                                         <button @click="prevPage" :disabled="currentPage === 1"
                                             class="p-1 text-white/70 hover:text-white disabled:opacity-30 transition-colors">
@@ -251,7 +251,7 @@ const previewTarget = ref(null);
 
 // Preview Logic
 const canvasContainerRef = ref(null);
-const canvasW = ref(600);
+const canvasW = ref(Math.min(600, window.innerWidth - 80));
 const pdfAspectRatio = ref(1.414);
 const canvasH = computed(() => Math.round(canvasW.value * pdfAspectRatio.value));
 const pdfTotalPages = ref(1);
@@ -298,7 +298,7 @@ watchEffect((onCleanup) => {
     const el = canvasContainerRef.value;
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
-        canvasW.value = Math.max(280, entry.contentRect.width - 48); 
+        canvasW.value = Math.max(280, entry.contentRect.width - 4);
     });
     ro.observe(el);
     onCleanup(() => ro.disconnect());
