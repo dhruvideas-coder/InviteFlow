@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 
 export const useLanguageStore = defineStore('language', () => {
     const currentLocale = ref(localStorage.getItem('locale') || 'en');
-    
+
     const locales = {
         en: {
             name: 'English',
@@ -62,6 +62,7 @@ export const useLanguageStore = defineStore('language', () => {
             color: 'Color',
             language_selection: 'Language Selection',
             add_recipient: 'Add Recipient',
+            edit_recipient: 'Edit Recipient',
             import_recipients: 'Import Recipients',
             export: 'Export',
             search_recipients: 'Search recipients...',
@@ -146,6 +147,7 @@ export const useLanguageStore = defineStore('language', () => {
             upload_template: 'Upload Template',
             add_new_document: 'Add new document',
             add_recipients: 'Add Recipients',
+            edit_recipients: 'Edit Recipients',
             manage_your_list: 'Manage your list',
             send_via_whatsapp: 'Send via WhatsApp',
             share_invitations: 'Share invitations',
@@ -196,6 +198,7 @@ export const useLanguageStore = defineStore('language', () => {
             color: 'રંગ',
             language_selection: 'ભાષા પસંદગી',
             add_recipient: 'લેનાર ઉમેરો',
+            edit_recipient: 'લેનાર સુધારો',
             import_recipients: 'લેનારાઓ આયાત કરો',
             export: 'નિકાસ',
             search_recipients: 'લેનારાઓ શોધો...',
@@ -280,6 +283,7 @@ export const useLanguageStore = defineStore('language', () => {
             upload_template: 'ટેમ્પલેટ અપલોડ કરો',
             add_new_document: 'નવો દસ્તાવેજ ઉમેરો',
             add_recipients: 'લેનારા ઉમેરો',
+            edit_recipients: 'લેનાર સુધારો',
             manage_your_list: 'તમારી યાદી મેનેજ કરો',
             send_via_whatsapp: 'વોટ્સએપ દ્વારા મોકલો',
             share_invitations: 'આમંત્રણો શેર કરો',

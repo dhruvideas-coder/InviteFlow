@@ -40,7 +40,7 @@
                     </svg>
                 </div>
                 <div class="min-w-0">
-                    <p class="text-xl font-bold text-gray-900">{{ recipients.length }}</p>
+                    <p class="text-xl font-bold text-gray-900">{{ totalCount }}</p>
                     <p class="text-xs text-gray-500 truncate">{{ lang.t('total_recipients') }}</p>
                 </div>
             </div>
@@ -51,7 +51,7 @@
                     </svg>
                 </div>
                 <div class="min-w-0">
-                    <p class="text-xl font-bold text-gray-900">{{ recipients.filter(r => r.sent).length }}</p>
+                    <p class="text-xl font-bold text-gray-900">{{ globalStats.total_sent }}</p>
                     <p class="text-xs text-gray-500 truncate">{{ lang.t('links_sent') }}</p>
                 </div>
             </div>
@@ -62,23 +62,28 @@
                     </svg>
                 </div>
                 <div class="min-w-0">
-                    <p class="text-xl font-bold text-gray-900">{{ recipients.filter(r => !r.sent).length }}</p>
+                    <p class="text-xl font-bold text-gray-900">{{ globalStats.total_pending }}</p>
                     <p class="text-xs text-gray-500 truncate">{{ lang.t('pending') }}</p>
                 </div>
             </div>
         </div>
 
-        <!-- Search & filter -->
         <div class="flex flex-col sm:flex-row gap-3">
             <div class="relative flex-1">
                 <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <input v-model="search" type="text" class="input pl-10" :placeholder="lang.t('search_recipients')" />
+                <input v-model="search" type="text" class="input pl-10" :placeholder="lang.t('search_recipients')" @input="onSearchInput" />
             </div>
-            <select v-model="villageFilter" class="select sm:w-44">
+            <select v-model="villageFilter" class="select sm:w-44" @change="fetchRecipients(1)">
                 <option value="">{{ lang.t('all_villages') }}</option>
                 <option v-for="v in villages" :key="v" :value="v">{{ v }}</option>
+            </select>
+            <select v-model="perPage" class="select sm:w-28" @change="fetchRecipients(1)">
+                <option :value="10">10 / Page</option>
+                <option :value="25">25 / Page</option>
+                <option :value="50">50 / Page</option>
+                <option :value="100">100 / Page</option>
             </select>
         </div>
 
@@ -99,7 +104,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="r in filteredRecipients" :key="r.id">
+                    <tr v-for="r in recipients" :key="r.id">
                         <td>
                             <input type="checkbox" class="rounded" v-model="selected" :value="r.id" />
                         </td>
@@ -112,7 +117,7 @@
                             </div>
                         </td>
                         <td v-if="lang.currentLocale === 'en'" class="text-gray-700" style="font-family: serif;">{{ r.name_gu }}</td>
-                        <td class="text-gray-600">{{ r.mobile }}</td>
+                        <td class="text-gray-600 font-mono text-xs">{{ formatMobile(r.mobile) }}</td>
                         <td><span class="tag">{{ lang.currentLocale === 'gu' ? r.village_gu || r.village_en : r.village_en }}</span></td>
                         <td>
                             <span :class="['badge text-xs', r.sent ? 'badge-green' : 'badge-gray']">
@@ -161,12 +166,57 @@
                 </tbody>
             </table>
 
-            <!-- Bulk actions -->
-            <div v-if="selected.length" class="flex items-center gap-3 px-4 py-3 bg-primary-50 border-t border-primary-100">
-                <span class="text-sm text-primary-700 font-medium">{{ selected.length }} {{ lang.t('selected') }}</span>
-                <button class="btn btn-sm bg-green-500 text-white hover:bg-green-600">{{ lang.t('send_whatsapp_all') }}</button>
-                <button class="btn btn-secondary btn-sm">{{ lang.t('generate_links') }}</button>
-                <button @click="bulkDelete" class="btn btn-danger btn-sm ml-auto">{{ lang.t('delete_selected') }}</button>
+            <!-- Bulk actions & Pagination -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-white border-t border-gray-100">
+                <div class="flex items-center gap-3">
+                    <div v-if="selected.length" class="flex items-center gap-2">
+                        <span class="text-sm text-primary-700 font-medium">{{ selected.length }} {{ lang.t('selected') }}</span>
+                        <button @click="bulkDelete" class="btn btn-danger btn-sm">{{ lang.t('delete_selected') }}</button>
+                    </div>
+                    <span v-else class="text-xs text-gray-500">
+                        Showing {{ pagination.from || 0 }} to {{ pagination.to || 0 }} of {{ pagination.total || 0 }} recipients
+                    </span>
+                </div>
+
+                <div v-if="pagination.last_page > 1" class="flex items-center gap-1">
+                    <button 
+                        @click="fetchRecipients(pagination.current_page - 1)" 
+                        :disabled="pagination.current_page === 1"
+                        class="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    
+                    <div class="flex items-center gap-1 mx-2">
+                        <button 
+                            v-for="p in visiblePages" 
+                            :key="p"
+                            @click="p !== '...' && fetchRecipients(p)"
+                            class="w-8 h-8 rounded-lg text-xs font-bold transition-all"
+                            :class="[
+                                p === pagination.current_page 
+                                    ? 'bg-primary-600 text-white shadow-md shadow-primary-200' 
+                                    : p === '...' 
+                                        ? 'cursor-default text-gray-400' 
+                                        : 'hover:bg-gray-100 text-gray-600'
+                            ]"
+                        >
+                            {{ p }}
+                        </button>
+                    </div>
+
+                    <button 
+                        @click="fetchRecipients(pagination.current_page + 1)" 
+                        :disabled="pagination.current_page === pagination.last_page"
+                        class="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -251,7 +301,7 @@
                                 </div>
                                 <div>
                                     <h3 class="text-lg font-bold text-gray-900">Send Invitation</h3>
-                                    <p class="text-xs text-gray-500">To: {{ selectedRecipient?.name_en }}</p>
+                                    <p class="text-xs text-gray-500">To: {{ selectedRecipient?.name_en }} • {{ formatMobile(selectedRecipient?.mobile) }}</p>
                                 </div>
                             </div>
                             <button @click="showWhatsAppModal = false" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
@@ -522,7 +572,7 @@
                                 </div>
                                 <div>
                                     <h3 class="text-lg font-bold text-gray-900">Personalized Links</h3>
-                                    <p class="text-xs text-gray-500">For {{ selectedRecipient?.name_en }}</p>
+                                    <p class="text-xs text-gray-500">For {{ selectedRecipient?.name_en }} • {{ formatMobile(selectedRecipient?.mobile) }}</p>
                                 </div>
                             </div>
                             <button @click="showLinksModal = false" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
@@ -586,6 +636,96 @@
                 </div>
             </Transition>
         </Teleport>
+
+        <!-- CSV/Excel Import Modal -->
+        <Teleport to="body">
+            <Transition name="modal">
+                <div v-if="showCsvModal" class="modal-overlay" @click.self="showCsvModal = false">
+                    <div class="modal max-w-2xl w-[95%] p-0 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900">Import Recipients</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">Upload CSV or Excel file with 'Display Name' and 'Mobile Phone' columns</p>
+                            </div>
+                            <button @click="showCsvModal = false" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="p-6">
+                            <!-- File Upload Area -->
+                            <div v-if="!importedData.length" class="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:border-primary-400 transition-colors cursor-pointer" @click="$refs.fileInput.click()">
+                                <input type="file" ref="fileInput" class="hidden" accept=".csv, .xlsx, .xls" @change="handleFileUpload" />
+                                <div class="w-16 h-16 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                    </svg>
+                                </div>
+                                <h4 class="text-sm font-bold text-gray-900">Click to upload or drag and drop</h4>
+                                <p class="text-xs text-gray-500 mt-1">CSV, XLSX or XLS files supported</p>
+                            </div>
+
+                            <!-- Error Message -->
+                            <div v-if="importError" class="mt-4 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600">
+                                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p class="text-sm font-medium">{{ importError }}</p>
+                            </div>
+
+                            <!-- Data Preview Table -->
+                            <div v-if="importedData.length" class="mt-4 border border-gray-100 rounded-xl overflow-hidden">
+                                <div class="max-h-[40vh] overflow-y-auto">
+                                    <table class="w-full text-left">
+                                        <thead class="bg-gray-50 sticky top-0">
+                                            <tr>
+                                                <th class="p-3">
+                                                    <input type="checkbox" class="rounded" :checked="selectedImportRows.length === importedData.length" @change="toggleAllImport" />
+                                                </th>
+                                                <th class="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Display Name</th>
+                                                <th class="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Mobile Phone</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-50">
+                                            <tr v-for="row in importedData" :key="row.id" class="hover:bg-gray-50/50">
+                                                <td class="p-3">
+                                                    <input type="checkbox" class="rounded" v-model="selectedImportRows" :value="row.id" />
+                                                </td>
+                                                <td class="p-3 text-sm text-gray-900 font-medium">{{ row.name }}</td>
+                                                <td class="p-3 text-sm text-gray-600 font-mono">{{ formatMobile(row.mobile) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+                            <button @click="importedData = []; importError = ''" v-if="importedData.length" class="btn btn-secondary btn-sm">Clear</button>
+                            <div v-else></div>
+                            <div class="flex gap-2">
+                                <button @click="showCsvModal = false" class="btn btn-secondary btn-sm">Cancel</button>
+                                <button 
+                                    v-if="importedData.length" 
+                                    @click="saveImportedRecipients" 
+                                    :disabled="importingCsv || selectedImportRows.length === 0" 
+                                    class="btn btn-primary btn-sm"
+                                >
+                                    <svg v-if="importingCsv" class="w-4 h-4 animate-spin mr-1" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                    Import {{ selectedImportRows.length }} Recipients
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
     </div>
 </template>
 
@@ -595,6 +735,9 @@ import { RouterLink } from 'vue-router';
 import axios from 'axios';
 import PdfCanvas from '@/components/PdfCanvas.vue';
 import { useLanguageStore } from '@/stores/language';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
+import { formatMobile } from '@/utils/format';
 
 const lang = useLanguageStore();
 
@@ -603,6 +746,35 @@ const villageFilter = ref('');
 const selected = ref([]);
 const showAddModal = ref(false);
 const showCsvModal = ref(false);
+
+// Pagination State
+const perPage = ref(10);
+const pagination = ref({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    from: 0,
+    to: 0
+});
+
+const totalCount = computed(() => pagination.value.total);
+
+const visiblePages = computed(() => {
+    const total = pagination.value.last_page;
+    const current = pagination.value.current_page;
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    
+    if (current <= 4) return [1, 2, 3, 4, 5, '...', total];
+    if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+    return [1, '...', current - 1, current, current + 1, '...', total];
+});
+
+// CSV/Excel Import State
+const importedData = ref([]);
+const importError = ref('');
+const selectedImportRows = ref([]);
+const importingCsv = ref(false);
+const fileInput = ref(null);
 
 // Contact Picker API
 const contactPickerSupported = 'contacts' in navigator && 'ContactsManager' in window;
@@ -619,7 +791,7 @@ async function pickFromContacts() {
 
         pickedContacts.value = contacts.map(c => ({
             name: c.name?.[0] ?? '',
-            mobile: c.tel?.[0] ?? '',
+            mobile: formatMobile(c.tel?.[0] ?? ''),
             skip: false,
         })).filter(c => c.name || c.mobile);
 
@@ -658,15 +830,138 @@ async function savePickedContacts() {
             }))
         );
 
-        results.forEach(r => {
-            if (r.status === 'fulfilled') recipients.value.unshift(r.value.data);
-        });
-
+        await fetchRecipients(1);
         showContactsModal.value = false;
     } catch (err) {
         console.error('Failed to save contacts:', err);
     } finally {
         savingContacts.value = false;
+    }
+}
+
+// CSV/Excel Import Logic
+const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const extension = file.name.split('.').pop().toLowerCase();
+    
+    if (extension === 'csv') {
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                validateAndProcessData(results.data);
+            },
+            error: (err) => {
+                importError.value = "Error parsing CSV: " + err.message;
+            }
+        });
+    } else if (['xlsx', 'xls'].includes(extension)) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            validateAndProcessData(jsonData);
+        };
+        reader.readAsArrayBuffer(file);
+    } else {
+        importError.value = "Unsupported file format. Please upload CSV or Excel.";
+    }
+};
+
+const validateAndProcessData = (data) => {
+    importError.value = '';
+    importedData.value = [];
+    
+    if (!data || data.length === 0) {
+        importError.value = "The file is empty.";
+        return;
+    }
+    
+    // Check for required columns (case-insensitive and trimmed)
+    const firstRow = data[0];
+    const keys = Object.keys(firstRow);
+    const nameKey = keys.find(k => k.trim().toLowerCase() === 'display name');
+    const phoneKey = keys.find(k => k.trim().toLowerCase() === 'mobile phone');
+    
+    if (!nameKey || !phoneKey) {
+        importError.value = "Required columns 'Display Name' and 'Mobile Phone' not found.";
+        return;
+    }
+    
+    importedData.value = data.map((row, index) => {
+        let name = String(row[nameKey] || '').trim();
+        let mobile = String(row[phoneKey] || '').trim();
+        
+        // Clean mobile: remove all non-digit characters except +
+        let cleanedMobile = mobile.replace(/[^\d+]/g, '');
+        
+        // Validation logic
+        // 1. Check if name or mobile is empty
+        if (!name || !cleanedMobile) return null;
+        
+        // 2. Check if mobile (digits only) is below 9 numbers
+        const digitsOnly = cleanedMobile.replace(/\D/g, '');
+        if (digitsOnly.length < 9) return null;
+        
+        // 3. Format mobile with country code if missing
+        // If it starts with +, keep as is. 
+        // If it's 10 digits and no +, assume India (+91)
+        if (!cleanedMobile.startsWith('+')) {
+            if (digitsOnly.length === 10) {
+                cleanedMobile = '+91' + digitsOnly;
+            } else {
+                // For other lengths, we just keep it as is but it might be risky
+                // But the user said "store with country code", so we could prefix + if missing
+                cleanedMobile = '+' + digitsOnly;
+            }
+        }
+        
+        return {
+            id: index,
+            name: name,
+            mobile: cleanedMobile,
+        };
+    }).filter(r => r !== null);
+    
+    selectedImportRows.value = importedData.value.map(r => r.id);
+};
+
+const toggleAllImport = (e) => {
+    selectedImportRows.value = e.target.checked ? importedData.value.map(r => r.id) : [];
+};
+
+async function saveImportedRecipients() {
+    const toAdd = importedData.value.filter(r => selectedImportRows.value.includes(r.id));
+    if (!toAdd.length) return;
+    
+    importingCsv.value = true;
+    try {
+        // Bulk insert would be better, but keeping it consistent with Promise.allSettled
+        const results = await Promise.allSettled(
+            toAdd.map(r => axios.post('/api/recipients', {
+                name_en: r.name,
+                name_gu: '',
+                mobile: String(r.mobile),
+                village_en: '',
+                village_gu: '',
+            }))
+        );
+        
+        // Refresh the first page to show new recipients
+        await fetchRecipients(1);
+        
+        showCsvModal.value = false;
+        importedData.value = [];
+        selectedImportRows.value = [];
+    } catch (err) {
+        console.error('Failed to save imported recipients:', err);
+    } finally {
+        importingCsv.value = false;
     }
 }
 
@@ -737,7 +1032,7 @@ let autoConvertVillageTimer = null;
 
 async function autoConvert(type = 'name') {
     const isName = type === 'name';
-    const text = isName ? form.value.name_en.trim() : form.value.village_en.trim();
+    const text = isName ? (form.value.name_en || '').trim() : (form.value.village_en || '').trim();
     if (!text) return;
     
     if (isName) autoConverting.value = true;
@@ -762,13 +1057,13 @@ async function autoConvert(type = 'name') {
 
 watch(() => form.value.name_en, (val) => {
     clearTimeout(autoConvertTimer);
-    if (!val.trim()) { form.value.name_gu = ''; return; }
+    if (!val || !val.trim()) { form.value.name_gu = ''; return; }
     autoConvertTimer = setTimeout(() => autoConvert('name'), 700);
 });
 
 watch(() => form.value.village_en, (val) => {
     clearTimeout(autoConvertVillageTimer);
-    if (!val.trim()) { form.value.village_gu = ''; return; }
+    if (!val || !val.trim()) { form.value.village_gu = ''; return; }
     autoConvertVillageTimer = setTimeout(() => autoConvert('village'), 700);
 });
 
@@ -807,10 +1102,14 @@ watch(selectedDocId, () => {
 async function fetchDocuments() {
     loadingDocs.value = true;
     try {
-        const { data } = await axios.get('/api/documents');
-        docs.value = data;
-        if (data.length > 0 && !selectedDocId.value) {
-            selectedDocId.value = data[0].id;
+        const { data } = await axios.get('/api/documents', {
+            params: { per_page: 100 } // Get more for the selector
+        });
+        // Handle both paginated and non-paginated (for safety)
+        const docsList = data.data || data;
+        docs.value = docsList;
+        if (docsList.length > 0 && !selectedDocId.value) {
+            selectedDocId.value = docsList[0].id;
         }
     } catch (err) {
         console.error('Failed to fetch documents:', err);
@@ -820,33 +1119,38 @@ async function fetchDocuments() {
 }
 
 const recipients = ref([]);
+const globalStats = ref({ total_sent: 0, total_pending: 0 });
 
-const filteredRecipients = computed(() => {
-    return recipients.value.filter(r => {
-        // If Gujarati is selected, show only those with Gujarati names
-        if (lang.currentLocale === 'gu' && !r.name_gu) {
-            return false;
-        }
+// Filtering is now handled on the backend via fetchRecipients
 
-        const q = search.value.toLowerCase();
-        const matchSearch = !q || 
-            r.name_en.toLowerCase().includes(q) || 
-            (r.name_gu && r.name_gu.includes(q)) ||
-            r.mobile.includes(q) || 
-            (r.village_en && r.village_en.toLowerCase().includes(q)) ||
-            (r.village_gu && r.village_gu.includes(q));
-        const matchVillage = !villageFilter.value || r.village_en === villageFilter.value;
-        return matchSearch && matchVillage;
-    });
-});
-
-async function fetchRecipients() {
+async function fetchRecipients(page = 1) {
     try {
-        const { data } = await axios.get('/api/recipients');
-        recipients.value = data;
+        const { data } = await axios.get('/api/recipients', {
+            params: {
+                page,
+                per_page: perPage.value,
+                search: search.value || undefined,
+                village: villageFilter.value || undefined
+            }
+        });
+        recipients.value = data.data;
+        globalStats.value = data.stats || { total_sent: 0, total_pending: 0 };
+        pagination.value = {
+            current_page: data.current_page,
+            last_page: data.last_page,
+            total: data.total,
+            from: data.from,
+            to: data.to
+        };
     } catch (err) {
         console.error('Failed to fetch recipients:', err);
     }
+}
+
+let searchTimer = null;
+function onSearchInput() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => fetchRecipients(1), 500);
 }
 
 function openAddModal() {
@@ -870,7 +1174,7 @@ function editRecipient(recipient) {
 }
 
 function toggleAll(e) {
-    selected.value = e.target.checked ? filteredRecipients.value.map(r => r.id) : [];
+    selected.value = e.target.checked ? recipients.value.map(r => r.id) : [];
 }
 
 async function saveRecipient() {
@@ -879,12 +1183,13 @@ async function saveRecipient() {
     saving.value = true;
     try {
         if (isEditing.value) {
-            const { data } = await axios.put(`/api/recipients/${editId.value}`, form.value);
-            const idx = recipients.value.findIndex(r => r.id === editId.value);
-            if (idx !== -1) recipients.value[idx] = data;
+            await axios.put(`/api/recipients/${editId.value}`, form.value);
+            // Refresh current page
+            await fetchRecipients(pagination.value.current_page);
         } else {
-            const { data } = await axios.post('/api/recipients', form.value);
-            recipients.value.unshift(data);
+            await axios.post('/api/recipients', form.value);
+            // Refresh first page
+            await fetchRecipients(1);
         }
         showAddModal.value = false;
         form.value = { name_en: '', name_gu: '', mobile: '', village_en: '', village_gu: '' };
@@ -911,7 +1216,8 @@ async function bulkDelete() {
     
     try {
         await Promise.all(selected.value.map(id => axios.delete(`/api/recipients/${id}`)));
-        recipients.value = recipients.value.filter(r => !selected.value.includes(r.id));
+        // Refresh current page
+        await fetchRecipients(pagination.value.current_page);
         selected.value = [];
     } catch (err) {
         console.error('Failed to delete recipients:', err);

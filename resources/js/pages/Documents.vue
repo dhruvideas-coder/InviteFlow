@@ -16,7 +16,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="card p-5 border-l-4 border-primary-500">
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ lang.t('total_documents') }}</p>
-                <h3 class="text-2xl font-black text-gray-900">{{ documents.length }}</h3>
+                <h3 class="text-2xl font-black text-gray-900">{{ pagination.total }}</h3>
             </div>
             <div class="card p-5 border-l-4 border-amber-400">
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ lang.t('in_progress') }}</p>
@@ -36,14 +36,19 @@
         <div class="flex flex-col sm:flex-row gap-3">
             <div class="relative flex-1">
                 <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input v-model="search" type="text" class="input pl-10" :placeholder="lang.t('search_documents')" @input="fetchDocuments" />
+                <input v-model="search" type="text" class="input pl-10" :placeholder="lang.t('search_documents')" @input="onSearchInput" />
             </div>
-            <select v-model="statusFilter" class="select sm:w-48" @change="fetchDocuments">
+            <select v-model="statusFilter" class="select sm:w-48" @change="fetchDocuments(1)">
                 <option value="">{{ lang.t('all_statuses') }}</option>
                 <option value="draft">{{ lang.t('draft') }}</option>
                 <option value="active">{{ lang.t('active') }}</option>
                 <option value="completed">{{ lang.t('completed') }}</option>
                 <option value="expired">{{ lang.t('expired') }}</option>
+            </select>
+            <select v-model="perPage" class="select sm:w-32" @change="fetchDocuments(1)">
+                <option :value="10">10 / Page</option>
+                <option :value="25">25 / Page</option>
+                <option :value="50">50 / Page</option>
             </select>
         </div>
 
@@ -116,6 +121,49 @@
                     </tr>
                 </tbody>
             </table>
+
+            <!-- Pagination -->
+            <div v-if="pagination.total > 0" class="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-white border-t border-gray-100">
+                <span class="text-xs text-gray-500">
+                    Showing {{ pagination.from || 0 }} to {{ pagination.to || 0 }} of {{ pagination.total || 0 }} documents
+                </span>
+
+                <div v-if="pagination.last_page > 1" class="flex items-center gap-1">
+                    <button 
+                        @click="fetchDocuments(pagination.current_page - 1)" 
+                        :disabled="pagination.current_page === 1"
+                        class="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <ChevronLeft class="w-4 h-4" />
+                    </button>
+                    
+                    <div class="flex items-center gap-1 mx-2">
+                        <button 
+                            v-for="p in visiblePages" 
+                            :key="p"
+                            @click="p !== '...' && fetchDocuments(p)"
+                            class="w-8 h-8 rounded-lg text-xs font-bold transition-all"
+                            :class="[
+                                p === pagination.current_page 
+                                    ? 'bg-primary-600 text-white shadow-md shadow-primary-200' 
+                                    : p === '...' 
+                                        ? 'cursor-default text-gray-400' 
+                                        : 'hover:bg-gray-100 text-gray-600'
+                            ]"
+                        >
+                            {{ p }}
+                        </button>
+                    </div>
+
+                    <button 
+                        @click="fetchDocuments(pagination.current_page + 1)" 
+                        :disabled="pagination.current_page === pagination.last_page"
+                        class="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <ChevronRight class="w-4 h-4" />
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Delete Modal -->
@@ -252,6 +300,26 @@ const deleteTarget = ref(null);
 const deleting = ref(false);
 const previewTarget = ref(null);
 
+// Pagination State
+const perPage = ref(10);
+const pagination = ref({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    from: 0,
+    to: 0
+});
+
+const visiblePages = computed(() => {
+    const total = pagination.value.last_page;
+    const current = pagination.value.current_page;
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    
+    if (current <= 4) return [1, 2, 3, 4, 5, '...', total];
+    if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+    return [1, '...', current - 1, current, current + 1, '...', total];
+});
+
 // Preview Logic
 const canvasContainerRef = ref(null);
 const canvasW = ref(Math.min(600, window.innerWidth - 80));
@@ -306,22 +374,37 @@ watchEffect((onCleanup) => {
     onCleanup(() => ro.disconnect());
 });
 
-const fetchDocuments = async () => {
+const fetchDocuments = async (page = 1) => {
     loading.value = true;
     try {
         const { data } = await axios.get('/api/documents', {
             params: {
+                page,
+                per_page: perPage.value,
                 type: 'document',
                 search: search.value || undefined,
                 status: statusFilter.value || undefined
             }
         });
-        documents.value = data;
+        documents.value = data.data;
+        pagination.value = {
+            current_page: data.current_page,
+            last_page: data.last_page,
+            total: data.total,
+            from: data.from,
+            to: data.to
+        };
     } catch (err) {
         console.error('Failed to fetch documents:', err);
     } finally {
         loading.value = false;
     }
+};
+
+let searchTimer = null;
+const onSearchInput = () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => fetchDocuments(1), 500);
 };
 
 const statusClass = (status) => {

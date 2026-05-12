@@ -43,31 +43,33 @@ class DocumentController extends Controller
             $query->where('user_id', $ownerId);
         }
 
-        $documents = $query
+        $perPage = $request->input('per_page', 10);
+        $paginated = $query
             ->when($request->type, fn($q) => $q->where('type', $request->type))
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%"))
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->latest()
-            ->get()
-            ->map(fn($doc) => [
-                'id' => $doc->id,
-                'type' => $doc->type,
-                'name' => $doc->name,
-                'description' => $doc->description,
-                'file_name' => $doc->file_name,
-                'file_type' => $doc->file_type,
-                'status' => $doc->status,
-                'total_signers' => $doc->total_signers,
-                'completed_signers' => $doc->completed_signers,
-                'language' => $doc->language,
-                'fields_count' => $doc->fields_count,
-                'fields' => $doc->fields,
-                'expires_at' => $doc->expires_at?->toDateString(),
-                'file_url' => Storage::disk('public')->url($doc->file_path),
-                'created_at' => $doc->created_at->toDateString(),
-            ]);
+            ->paginate($perPage);
 
-        return response()->json($documents);
+        $paginated->getCollection()->transform(fn($doc) => [
+            'id' => $doc->id,
+            'type' => $doc->type,
+            'name' => $doc->name,
+            'description' => $doc->description,
+            'file_name' => $doc->file_name,
+            'file_type' => $doc->file_type,
+            'status' => $doc->status,
+            'total_signers' => $doc->total_signers,
+            'completed_signers' => $doc->completed_signers,
+            'language' => $doc->language,
+            'fields_count' => $doc->fields_count,
+            'fields' => $doc->fields,
+            'expires_at' => $doc->expires_at?->toDateString(),
+            'file_url' => Storage::disk('public')->url($doc->file_path),
+            'created_at' => $doc->created_at->toDateString(),
+        ]);
+
+        return response()->json($paginated);
     }
 
     public function store(Request $request)
