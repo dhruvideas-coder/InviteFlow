@@ -5,18 +5,18 @@
             <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
             <div class="absolute bottom-0 right-20 w-32 h-32 bg-white/5 rounded-full translate-y-1/2"></div>
             <div class="relative">
-                <p class="text-primary-200 text-sm font-medium mb-1">Good morning 👋</p>
-                <h2 class="text-2xl font-bold">Welcome back, Admin!</h2>
-                <p class="text-primary-200 text-sm mt-2">Here's what's happening with your invitations today.</p>
+                <p class="text-primary-200 text-sm font-medium mb-1">{{ lang.t('welcome_back') }} 👋</p>
+                <h2 class="text-2xl font-bold">{{ lang.t('admin_greeting') }}</h2>
+                <p class="text-primary-200 text-sm mt-2">{{ lang.t('dashboard_subtitle') }}</p>
                 <div class="flex flex-wrap items-center gap-2 mt-4">
                     <RouterLink to="/documents/create" class="btn btn-sm bg-white text-primary-700 hover:bg-primary-50 focus:ring-white shadow-sm">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
-                        New Document
+                        {{ lang.t('new_document') }}
                     </RouterLink>
                     <RouterLink to="/recipients" class="btn btn-sm border border-white/30 text-white hover:bg-white/10 focus:ring-white">
-                        Add Recipients
+                        {{ lang.t('add_recipient') }}
                     </RouterLink>
                 </div>
             </div>
@@ -35,7 +35,7 @@
                 </div>
                 <div>
                     <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ stat.value }}</p>
-                    <p class="text-xs sm:text-sm text-gray-500 mt-0.5">{{ stat.label }}</p>
+                    <p class="text-xs sm:text-sm text-gray-500 mt-0.5">{{ lang.t(stat.labelKey) }}</p>
                 </div>
             </div>
         </div>
@@ -45,8 +45,8 @@
             <!-- Recent documents -->
             <div class="md:col-span-2 card overflow-hidden">
                 <div class="flex items-center justify-between p-5 border-b border-gray-50">
-                    <h3 class="font-semibold text-gray-900">Recent Documents</h3>
-                    <RouterLink to="/documents" class="text-sm text-primary-600 hover:text-primary-700 font-medium">View all</RouterLink>
+                    <h3 class="font-semibold text-gray-900">{{ lang.t('recent_documents') }}</h3>
+                    <RouterLink to="/documents" class="text-sm text-primary-600 hover:text-primary-700 font-medium">{{ lang.t('view_all') }}</RouterLink>
                 </div>
                 <div class="divide-y divide-gray-50">
                     <div v-for="doc in recentDocs" :key="doc.id" class="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50/60 transition-colors">
@@ -115,7 +115,7 @@
                 </div>
 
                 <RouterLink to="/subscription" class="btn btn-secondary w-full">
-                    Manage Subscription
+                    {{ lang.t('manage_subscription') }}
                 </RouterLink>
             </div>
         </div>
@@ -132,8 +132,8 @@
                     <component :is="action.icon" :class="['w-5 h-5', action.color]" />
                 </div>
                 <div>
-                    <p class="font-medium text-gray-900 text-sm">{{ action.label }}</p>
-                    <p class="text-xs text-gray-500 mt-0.5">{{ action.desc }}</p>
+                    <p class="font-medium text-gray-900 text-sm">{{ lang.t(action.labelKey) }}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ lang.t(action.descKey) }}</p>
                 </div>
             </RouterLink>
         </div>
@@ -143,12 +143,15 @@
 <script setup>
 import { RouterLink } from 'vue-router';
 import { FileText, Users, Link2, BarChart2, Upload, MessageCircle, Download, Settings } from 'lucide-vue-next';
+import { useLanguageStore } from '@/stores/language';
+
+const lang = useLanguageStore();
 
 const stats = [
-    { label: 'Documents', value: '12', trend: '+2 this week', trendUp: true, icon: FileText, iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
-    { label: 'Recipients', value: '1,248', trend: '+84 today', trendUp: true, icon: Users, iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
-    { label: 'Links Generated', value: '3,412', trend: '+312 today', trendUp: true, icon: Link2, iconBg: 'bg-amber-50', iconColor: 'text-amber-600' },
-    { label: 'WhatsApp Sent', value: '420', trend: '42% of quota', trendUp: true, icon: MessageCircle, iconBg: 'bg-rose-50', iconColor: 'text-rose-500' },
+    { labelKey: 'documents', value: '12', trend: '+2 this week', trendUp: true, icon: FileText, iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
+    { labelKey: 'recipients', value: '1,248', trend: '+84 today', trendUp: true, icon: Users, iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
+    { labelKey: 'links_generated', value: '3,412', trend: '+312 today', trendUp: true, icon: Link2, iconBg: 'bg-amber-50', iconColor: 'text-amber-600' },
+    { labelKey: 'whatsapp_sent', value: '420', trend: '42% of quota', trendUp: true, icon: MessageCircle, iconBg: 'bg-rose-50', iconColor: 'text-rose-500' },
 ];
 
 const recentDocs = [
@@ -159,9 +162,9 @@ const recentDocs = [
 ];
 
 const quickActions = [
-    { label: 'Upload Template', desc: 'Add new document', to: '/documents/create', icon: Upload, bg: 'bg-primary-50', color: 'text-primary-600' },
-    { label: 'Add Recipients', desc: 'Manage your list', to: '/recipients', icon: Users, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-    { label: 'Send via WhatsApp', desc: 'Share invitations', to: '/links', icon: MessageCircle, bg: 'bg-green-50', color: 'text-green-600' },
-    { label: 'View Analytics', desc: 'Track performance', to: '/analytics', icon: BarChart2, bg: 'bg-amber-50', color: 'text-amber-600' },
+    { labelKey: 'upload_template', descKey: 'add_new_document', to: '/documents/create', icon: Upload, bg: 'bg-primary-50', color: 'text-primary-600' },
+    { labelKey: 'add_recipients', descKey: 'manage_your_list', to: '/recipients', icon: Users, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+    { labelKey: 'send_via_whatsapp', descKey: 'share_invitations', to: '/links', icon: MessageCircle, bg: 'bg-green-50', color: 'text-green-600' },
+    { labelKey: 'view_analytics', descKey: 'track_performance', to: '/analytics', icon: BarChart2, bg: 'bg-amber-50', color: 'text-amber-600' },
 ];
 </script>

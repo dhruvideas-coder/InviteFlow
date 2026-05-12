@@ -1,18 +1,18 @@
 <template>
     <div class="space-y-6">
         <div class="flex items-center justify-between gap-4">
-            <p class="text-sm text-gray-500">Track your invitation performance</p>
+            <p class="text-sm text-gray-500">{{ lang.t('analytics_desc') }}</p>
             <div class="flex gap-2">
                 <select v-model="period" class="select sm:w-36">
-                    <option value="7">Last 7 days</option>
-                    <option value="30">Last 30 days</option>
-                    <option value="90">Last 90 days</option>
+                    <option value="7">{{ lang.t('last_7_days') }}</option>
+                    <option value="30">{{ lang.t('last_30_days') }}</option>
+                    <option value="90">{{ lang.t('last_90_days') }}</option>
                 </select>
                 <button class="btn btn-secondary btn-sm">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    <span class="hidden sm:inline">Export</span>
+                    <span class="hidden sm:inline">{{ lang.t('export') }}</span>
                 </button>
             </div>
         </div>
@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ kpi.value }}</p>
-                <p class="text-xs sm:text-sm text-gray-500 mt-0.5">{{ kpi.label }}</p>
+                <p class="text-xs sm:text-sm text-gray-500 mt-0.5">{{ lang.t(kpi.labelKey) }}</p>
             </div>
         </div>
 
@@ -42,10 +42,10 @@
             <!-- Chart area -->
             <div class="lg:col-span-2 card p-5">
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-                    <h3 class="font-semibold text-gray-900">Links Generated Over Time</h3>
+                    <h3 class="font-semibold text-gray-900">{{ lang.t('links_generated_over_time') }}</h3>
                     <div class="flex gap-3 text-xs">
-                        <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-primary-500 inline-block"></span>Links</div>
-                        <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span>WhatsApp</div>
+                        <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-primary-500 inline-block"></span>{{ lang.t('links') }}</div>
+                        <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span>{{ lang.t('whatsapp') }}</div>
                     </div>
                 </div>
                 <!-- Bar chart simulation -->
@@ -74,7 +74,7 @@
 
             <!-- Top documents -->
             <div class="card p-5">
-                <h3 class="font-semibold text-gray-900 mb-4">Top Documents</h3>
+                <h3 class="font-semibold text-gray-900 mb-4">{{ lang.t('top_documents') }}</h3>
                 <div class="space-y-3">
                     <div v-for="(doc, i) in topDocs" :key="doc.name" class="flex items-center gap-3">
                         <span class="text-xs font-bold text-gray-400 w-4">{{ i + 1 }}</span>
@@ -93,7 +93,7 @@
         <!-- Delivery breakdown -->
         <div class="grid sm:grid-cols-2 gap-6">
             <div class="card p-5">
-                <h3 class="font-semibold text-gray-900 mb-4">Delivery Channels</h3>
+                <h3 class="font-semibold text-gray-900 mb-4">{{ lang.t('delivery_channels') }}</h3>
                 <div class="space-y-4">
                     <div v-for="ch in channels" :key="ch.name">
                         <div class="flex justify-between text-sm mb-2">
@@ -111,7 +111,7 @@
             </div>
 
             <div class="card p-5">
-                <h3 class="font-semibold text-gray-900 mb-4">Village Breakdown</h3>
+                <h3 class="font-semibold text-gray-900 mb-4">{{ lang.t('village_breakdown') }}</h3>
                 <div class="space-y-2.5">
                     <div v-for="v in villageStats" :key="v.name" class="flex items-center gap-3">
                         <span class="text-xs text-gray-500 w-20 truncate">{{ v.name }}</span>
@@ -129,14 +129,17 @@
 <script setup>
 import { ref } from 'vue';
 import { FileText, Users, Link2, MessageCircle } from 'lucide-vue-next';
+import { useLanguageStore } from '@/stores/language';
+
+const lang = useLanguageStore();
 
 const period = ref('30');
 
 const kpis = [
-    { label: 'Documents Created', value: '12', change: '+2', up: true, icon: FileText, bg: 'bg-primary-50', color: 'text-primary-600' },
-    { label: 'Links Generated', value: '3,412', change: '+18%', up: true, icon: Link2, bg: 'bg-amber-50', color: 'text-amber-600' },
-    { label: 'WhatsApp Sent', value: '420', change: '+5%', up: true, icon: MessageCircle, bg: 'bg-green-50', color: 'text-green-600' },
-    { label: 'Email Sent', value: '215', change: '-2%', up: false, icon: Users, bg: 'bg-rose-50', color: 'text-rose-500' },
+    { labelKey: 'documents_created', value: '12', change: '+2', up: true, icon: FileText, bg: 'bg-primary-50', color: 'text-primary-600' },
+    { labelKey: 'links_generated', value: '3,412', change: '+18%', up: true, icon: Link2, bg: 'bg-amber-50', color: 'text-amber-600' },
+    { labelKey: 'whatsapp_sent', value: '420', change: '+5%', up: true, icon: MessageCircle, bg: 'bg-green-50', color: 'text-green-600' },
+    { labelKey: 'email_sent', value: '215', change: '-2%', up: false, icon: Users, bg: 'bg-rose-50', color: 'text-rose-500' },
 ];
 
 const chartBars = [

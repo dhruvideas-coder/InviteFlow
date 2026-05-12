@@ -8,20 +8,20 @@
                     <ChevronLeft class="w-5 h-5" />
                 </RouterLink>
                 <div>
-                    <h1 class="text-xl font-bold text-gray-900">{{ isEdit ? 'Edit Document' : 'Create Document' }}</h1>
+                    <h1 class="text-xl font-bold text-gray-900">{{ isEdit ? lang.t('edit_document') : lang.t('create_document') }}</h1>
                     <nav class="flex text-xs text-gray-500 mt-0.5">
-                        <RouterLink to="/" class="hover:text-primary-600">Home</RouterLink>
+                        <RouterLink to="/" class="hover:text-primary-600">{{ lang.t('home') }}</RouterLink>
                         <span class="mx-1.5">/</span>
-                        <RouterLink to="/documents" class="hover:text-primary-600">Documents</RouterLink>
+                        <RouterLink to="/documents" class="hover:text-primary-600">{{ lang.t('documents') }}</RouterLink>
                         <span class="mx-1.5">/</span>
-                        <span class="text-gray-900 font-medium">{{ isEdit ? 'Edit' : 'Create' }}</span>
+                        <span class="text-gray-900 font-medium">{{ isEdit ? lang.t('edit') : lang.t('create') }}</span>
                     </nav>
                 </div>
             </div>
             
             <button v-if="currentStep === 4" @click="saveDocument('active')" class="btn btn-primary px-6 w-full sm:w-auto" :disabled="saving">
                 <Loader2 v-if="saving" class="w-4 h-4 animate-spin" />
-                <span v-else>Publish Document</span>
+                <span v-else>{{ lang.t('publish_document') }}</span>
             </button>
         </div>
 
@@ -43,7 +43,7 @@
                     <span :class="[
                         'text-[11px] font-semibold mt-2 absolute -bottom-6 whitespace-nowrap transition-colors',
                         currentStep === i + 1 ? 'text-primary-600' : 'text-gray-400'
-                    ]">{{ step }}</span>
+                    ]">{{ lang.t(step.toLowerCase()) }}</span>
                 </div>
                 <div v-if="i < steps.length - 1" :class="[
                     'h-0.5 flex-1 mx-2 transition-all duration-500',
@@ -58,23 +58,23 @@
             <!-- STEP 1: Name & Description -->
             <div v-if="currentStep === 1" class="max-w-xl mx-auto">
                 <div class="card p-8">
-                    <h2 class="text-xl font-bold text-gray-900 mb-2">Name your document</h2>
-                    <p class="text-sm text-gray-500 mb-8">Give your document a clear title for easy tracking.</p>
+                    <h2 class="text-xl font-bold text-gray-900 mb-2">{{ lang.t('name_your_document') }}</h2>
+                    <p class="text-sm text-gray-500 mb-8">{{ lang.t('document_name_desc') }}</p>
                     
                     <div class="space-y-6">
                         <div class="form-group">
-                            <label class="label">Document title <span class="text-red-500">*</span></label>
+                            <label class="label">{{ lang.t('document_title') }} <span class="text-red-500">*</span></label>
                             <input v-model="form.name" type="text" class="input py-3" placeholder="e.g. Wedding Invitation" />
                         </div>
                         <div class="form-group">
-                            <label class="label">Description <span class="text-gray-400 font-normal">(optional)</span></label>
-                            <textarea v-model="form.description" class="input min-h-[120px] py-3 resize-none" placeholder="Add some context for this document..."></textarea>
+                            <label class="label">{{ lang.t('description') }} <span class="text-gray-400 font-normal">({{ lang.t('optional') }})</span></label>
+                            <textarea v-model="form.description" class="input min-h-[120px] py-3 resize-none" :placeholder="lang.t('description_placeholder')"></textarea>
                         </div>
                     </div>
 
                     <div class="mt-10 flex justify-end">
                         <button @click="currentStep = 2" :disabled="!form.name" class="btn btn-primary px-8 py-3">
-                            Continue
+                            {{ lang.t('continue') }}
                             <ArrowRight class="w-4 h-4 ml-2" />
                         </button>
                     </div>
@@ -84,7 +84,7 @@
             <!-- STEP 2: Upload Document -->
             <div v-if="currentStep === 2" class="max-w-4xl mx-auto space-y-6">
                 <div class="card p-8">
-                    <h2 class="text-xl font-bold text-gray-900 mb-2">Upload your documents</h2>
+                    <h2 class="text-xl font-bold text-gray-900 mb-2">{{ lang.t('upload') }}</h2>
                     <p class="text-sm text-gray-500 mb-8">Upload a PDF or Image for personalization. Max 50 MB.</p>
 
                     <!-- Dropzone -->
@@ -97,15 +97,15 @@
                             <div class="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mb-4 group-hover:bg-white group-hover:shadow-sm transition-all">
                                 <Upload class="w-8 h-8 text-gray-400 group-hover:text-primary-500" />
                             </div>
-                            <h3 class="text-base font-bold text-gray-900">Drop files here</h3>
-                            <p class="text-sm text-gray-500 mt-1">or click to browse — PDF or Images supported</p>
-                            <button class="btn btn-secondary mt-6 px-6">Choose files</button>
+                            <h3 class="text-base font-bold text-gray-900">{{ lang.t('drop_files_here') }}</h3>
+                            <p class="text-sm text-gray-500 mt-1">{{ lang.t('upload_desc') }}</p>
+                            <button class="btn btn-secondary mt-6 px-6">{{ lang.t('choose_files') }}</button>
                         </div>
                     </div>
 
                     <!-- Previously uploaded documents -->
                     <div v-if="selectedFile" class="mt-8">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Uploaded document</h3>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">{{ lang.t('uploaded_document') }}</h3>
                         <div class="flex items-center gap-4 p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
                             <div class="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center shrink-0">
                                 <FileText class="w-5 h-5 text-white" />
@@ -114,7 +114,7 @@
                                 <p class="text-sm font-bold text-emerald-900 truncate">{{ selectedFile.name }}</p>
                                 <p class="text-xs text-emerald-600 font-medium">{{ fileSizeMB }} MB</p>
                             </div>
-                            <span class="badge bg-white text-emerald-600 font-bold border border-emerald-100 px-3 py-1">Uploaded</span>
+                            <span class="badge bg-white text-emerald-600 font-bold border border-emerald-100 px-3 py-1">{{ lang.t('uploaded') }}</span>
                             <button @click="clearFile" class="p-1.5 text-emerald-400 hover:text-red-500 transition-colors">
                                 <Trash2 class="w-4 h-4" />
                             </button>
@@ -122,9 +122,9 @@
                     </div>
 
                     <div class="mt-10 flex justify-between">
-                        <button @click="currentStep = 1" class="btn btn-secondary px-6">Cancel</button>
+                        <button @click="currentStep = 1" class="btn btn-secondary px-6">{{ lang.t('cancel') }}</button>
                         <button @click="currentStep = 3" :disabled="!selectedFile" class="btn btn-primary px-8 py-3">
-                            Continue
+                            {{ lang.t('continue') }}
                             <ArrowRight class="w-4 h-4 ml-2" />
                         </button>
                     </div>
@@ -142,7 +142,7 @@
                                 <button @click="prevPage" :disabled="currentPage === 1" class="p-1 rounded hover:bg-gray-50 disabled:opacity-30 transition-all">
                                     <ChevronLeft class="w-3.5 h-3.5" />
                                 </button>
-                                <span class="text-[10px] font-bold text-gray-600 min-w-[40px] text-center">PAGE {{ currentPage }} / {{ pdfTotalPages }}</span>
+                                <span class="text-[10px] font-bold text-gray-600 min-w-[40px] text-center">{{ lang.t('page') }} {{ currentPage }} / {{ pdfTotalPages }}</span>
                                 <button @click="nextPage" :disabled="currentPage === pdfTotalPages" class="p-1 rounded hover:bg-gray-50 disabled:opacity-30 transition-all">
                                     <ChevronRight class="w-3.5 h-3.5" />
                                 </button>
@@ -165,8 +165,8 @@
                     <!-- Sidebar -->
                     <div class="w-full lg:w-80 shrink-0 flex flex-col gap-4">
                         <div class="card p-6">
-                            <h3 class="font-bold text-gray-900 mb-2">Add Fields</h3>
-                            <p class="text-sm text-gray-500 mb-6">Click on the document to place fields where recipients should provide their information.</p>
+                            <h3 class="font-bold text-gray-900 mb-2">{{ lang.t('add_fields') }}</h3>
+                            <p class="text-sm text-gray-500 mb-6">{{ lang.t('add_fields_desc') }}</p>
                             
                             <div class="space-y-4">
                                 <button @click="addField('name')" class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-primary-100 bg-primary-50/30 text-primary-700 hover:bg-primary-50 transition-all text-left group mb-3">
@@ -174,7 +174,7 @@
                                         <User class="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <p class="font-bold">Name Field</p>
+                                        <p class="font-bold">{{ lang.t('recipient_name') }}</p>
                                         <p class="text-[11px] opacity-70">Click & Drag to position</p>
                                     </div>
                                     <Plus class="w-4 h-4 ml-auto opacity-40 group-hover:opacity-100" />
@@ -185,7 +185,7 @@
                                         <MapPin class="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <p class="font-bold">Village Name</p>
+                                        <p class="font-bold">{{ lang.t('village_name') }}</p>
                                         <p class="text-[11px] opacity-70">Place village location</p>
                                     </div>
                                     <Plus class="w-4 h-4 ml-auto opacity-40 group-hover:opacity-100" />
@@ -195,7 +195,7 @@
 
                         <div class="card p-6 flex-1 flex flex-col overflow-hidden">
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="font-bold text-gray-900">Placed Fields</h3>
+                                <h3 class="font-bold text-gray-900">{{ lang.t('placed_fields') }}</h3>
                                 <span class="badge bg-gray-100 text-gray-600 font-bold px-2">{{ fields.length }}</span>
                             </div>
                             
@@ -217,17 +217,17 @@
                                     </div>
                                     <div class="grid grid-cols-2 gap-3 mb-3">
                                         <div>
-                                            <label class="text-[10px] text-gray-400 font-bold uppercase">Width %</label>
+                                            <label class="text-[10px] text-gray-400 font-bold uppercase">{{ lang.t('width') }} %</label>
                                             <input type="number" v-model.number="field.width_percent" class="w-full bg-gray-50 border-none rounded-lg py-1 px-2 text-xs font-medium focus:bg-white focus:ring-1 focus:ring-primary-100" />
                                         </div>
                                         <div>
-                                            <label class="text-[10px] text-gray-400 font-bold uppercase">Height %</label>
+                                            <label class="text-[10px] text-gray-400 font-bold uppercase">{{ lang.t('height') }} %</label>
                                             <input type="number" v-model.number="field.height_percent" class="w-full bg-gray-50 border-none rounded-lg py-1 px-2 text-xs font-medium focus:bg-white focus:ring-1 focus:ring-primary-100" />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label class="text-[10px] text-gray-400 font-bold uppercase mb-2 block">Field Text Color</label>
+                                        <label class="text-[10px] text-gray-400 font-bold uppercase mb-2 block">{{ lang.t('color') }}</label>
                                         <div class="flex flex-wrap gap-2">
                                             <!-- Black & White always -->
                                             <button 
@@ -362,7 +362,7 @@
                             <CheckCircle class="w-8 h-8" />
                         </div>
                         <div>
-                            <h2 class="text-2xl font-bold text-gray-900">Review & Confirm</h2>
+                            <h2 class="text-2xl font-bold text-gray-900">{{ lang.t('review_confirm') }}</h2>
                             <p class="text-sm text-gray-500">Please review the details before finalizing your document.</p>
                         </div>
                     </div>
@@ -409,7 +409,7 @@
                                         </div>
                                     </div>
                                     <div class="pt-4 border-t border-gray-100">
-                                        <label class="text-[10px] text-gray-400 font-bold uppercase mb-2 block">Language Selection</label>
+                                        <label class="text-[10px] text-gray-400 font-bold uppercase mb-2 block">{{ lang.t('language_selection') }}</label>
                                         <select v-model="form.language" class="select bg-white border-gray-200">
                                             <option value="en">English (Display English Names)</option>
                                             <option value="gu">Gujarati (Display Gujarati Names)</option>
@@ -453,12 +453,12 @@
                     </div>
 
                     <div class="mt-10 pt-8 border-t border-gray-100 flex justify-between">
-                        <button @click="currentStep = 3" class="btn btn-secondary px-8">Back to Editor</button>
+                        <button @click="currentStep = 3" class="btn btn-secondary px-8">{{ lang.t('back_to_editor') }}</button>
                         <div class="flex gap-4">
-                            <button @click="saveDocument('draft')" class="btn btn-secondary px-8" :disabled="saving">Save as Draft</button>
+                            <button @click="saveDocument('draft')" class="btn btn-secondary px-8" :disabled="saving">{{ lang.t('save_as_draft') }}</button>
                             <button @click="saveDocument('active')" class="btn btn-primary px-8" :disabled="saving">
                                 <Loader2 v-if="saving" class="w-4 h-4 animate-spin" />
-                                <span v-else>Publish Document</span>
+                                <span v-else>{{ lang.t('publish_document') }}</span>
                             </button>
                         </div>
                     </div>
@@ -469,7 +469,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watchEffect, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watchEffect, nextTick, watch } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
 import { 
     ChevronLeft, ChevronRight, Check, Upload, FileText, Trash2, ArrowRight, 
@@ -477,9 +477,11 @@ import {
 } from 'lucide-vue-next';
 import axios from 'axios';
 import PdfCanvas from '@/components/PdfCanvas.vue';
+import { useLanguageStore } from '@/stores/language';
 
 const router = useRouter();
 const route = useRoute();
+const lang = useLanguageStore();
 
 const isEdit = computed(() => !!route.params.id);
 const currentStep = ref(1);
@@ -489,7 +491,12 @@ const form = ref({
     name: '',
     description: '',
     status: 'draft',
-    language: 'gu'
+    language: lang.currentLocale
+});
+
+// Sync form language with global locale
+watch(() => lang.currentLocale, (newLocale) => {
+    form.value.language = newLocale;
 });
 
 const selectedFile = ref(null);
@@ -617,12 +624,11 @@ const addField = (type) => {
 };
 
 const getTranslatedLabel = (field) => {
-    const isGu = form.value.language === 'gu';
     if (field.field_type === 'name') {
-        return isGu ? 'નામ' : 'Recipient Name';
+        return lang.t('recipient_name');
     }
     if (field.field_type === 'village') {
-        return isGu ? 'ગામનું નામ' : 'Village Name';
+        return lang.t('village_name');
     }
     return field.label;
 };

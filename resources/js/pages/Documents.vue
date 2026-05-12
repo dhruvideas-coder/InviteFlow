@@ -3,31 +3,31 @@
         <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Document Management</h1>
+                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">{{ lang.t('documents') }}</h1>
                 <p class="text-sm text-gray-500 mt-1">Manage bulk document requests and tracking.</p>
             </div>
             <RouterLink to="/documents/create" class="btn btn-primary px-6 py-2.5 shadow-lg shadow-primary-200 flex items-center gap-2">
                 <Plus class="w-4 h-4 stroke-[3px]" />
-                <span>Create New Document</span>
+                <span>{{ lang.t('new_document') }}</span>
             </RouterLink>
         </div>
 
         <!-- Summary Stats -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="card p-5 border-l-4 border-primary-500">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Documents</p>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ lang.t('total_documents') }}</p>
                 <h3 class="text-2xl font-black text-gray-900">{{ documents.length }}</h3>
             </div>
             <div class="card p-5 border-l-4 border-amber-400">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">In Progress</p>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ lang.t('in_progress') }}</p>
                 <h3 class="text-2xl font-black text-gray-900">{{ documents.filter(d => d.status === 'active').length }}</h3>
             </div>
             <div class="card p-5 border-l-4 border-emerald-500">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Completed</p>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ lang.t('completed') }}</p>
                 <h3 class="text-2xl font-black text-gray-900">{{ documents.filter(d => d.status === 'completed').length }}</h3>
             </div>
             <div class="card p-5 border-l-4 border-slate-300">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Drafts</p>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ lang.t('drafts') }}</p>
                 <h3 class="text-2xl font-black text-gray-900">{{ documents.filter(d => d.status === 'draft').length }}</h3>
             </div>
         </div>
@@ -36,14 +36,14 @@
         <div class="flex flex-col sm:flex-row gap-3">
             <div class="relative flex-1">
                 <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input v-model="search" type="text" class="input pl-10" placeholder="Search documents..." @input="fetchDocuments" />
+                <input v-model="search" type="text" class="input pl-10" :placeholder="lang.t('search_documents')" @input="fetchDocuments" />
             </div>
             <select v-model="statusFilter" class="select sm:w-48" @change="fetchDocuments">
-                <option value="">All statuses</option>
-                <option value="draft">Draft</option>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-                <option value="expired">Expired</option>
+                <option value="">{{ lang.t('all_statuses') }}</option>
+                <option value="draft">{{ lang.t('draft') }}</option>
+                <option value="active">{{ lang.t('active') }}</option>
+                <option value="completed">{{ lang.t('completed') }}</option>
+                <option value="expired">{{ lang.t('expired') }}</option>
             </select>
         </div>
 
@@ -52,11 +52,11 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th>Progress</th>
-                        <th class="hidden md:table-cell">Date</th>
-                        <th class="text-right">Actions</th>
+                        <th>{{ lang.t('title') }}</th>
+                        <th>{{ lang.t('status') }}</th>
+                        <th>{{ lang.t('progress') }}</th>
+                        <th class="hidden md:table-cell">{{ lang.t('date') }}</th>
+                        <th class="text-right">{{ lang.t('actions') }}</th>
                     </tr>
                 </thead>
                 <tbody v-if="loading">
@@ -74,11 +74,11 @@
                         <td>
                             <div class="flex flex-col">
                                 <span class="font-semibold text-gray-900 line-clamp-1">{{ doc.name }}</span>
-                                <span class="text-[10px] text-gray-500 mt-0.5 line-clamp-1">{{ doc.description || 'No description' }}</span>
+                                <span class="text-[10px] text-gray-500 mt-0.5 line-clamp-1">{{ doc.description || lang.t('no_description') }}</span>
                             </div>
                         </td>
                         <td>
-                            <span :class="['badge', statusClass(doc.status)]">{{ doc.status.toUpperCase() }}</span>
+                            <span :class="['badge', statusClass(doc.status)]">{{ lang.t(doc.status.toLowerCase()) }}</span>
                         </td>
                         <td>
                             <div class="flex items-center gap-2 text-gray-600">
@@ -91,9 +91,9 @@
                         </td>
                         <td>
                             <div class="flex items-center justify-end gap-2">
-                                <RouterLink v-if="doc.status === 'draft'" :to="`/documents/${doc.id}/edit`" class="text-primary-600 hover:text-primary-700 font-bold text-[10px] uppercase tracking-wider">Edit</RouterLink>
+                                <RouterLink v-if="doc.status === 'draft'" :to="`/documents/${doc.id}/edit`" class="text-primary-600 hover:text-primary-700 font-bold text-[10px] uppercase tracking-wider">{{ lang.t('edit') }}</RouterLink>
                                 <span v-if="doc.status === 'draft'" class="text-gray-100">|</span>
-                                <button @click="openPreview(doc)" class="text-primary-600 hover:text-primary-700 font-bold text-[10px] uppercase tracking-wider">View</button>
+                                <button @click="openPreview(doc)" class="text-primary-600 hover:text-primary-700 font-bold text-[10px] uppercase tracking-wider">{{ lang.t('view') }}</button>
                                 <button @click="confirmDelete(doc)" class="p-1 text-gray-300 hover:text-red-500 transition-colors ml-1">
                                     <Trash2 class="w-3.5 h-3.5" />
                                 </button>
@@ -106,10 +106,10 @@
                                 <div class="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mb-2">
                                     <Mail class="w-8 h-8 text-gray-300" />
                                 </div>
-                                <h3 class="font-semibold text-gray-800">No documents found</h3>
-                                <p class="text-sm text-gray-400">Create your first document to start.</p>
+                                <h3 class="font-semibold text-gray-800">{{ lang.t('no_documents_found') }}</h3>
+                                <p class="text-sm text-gray-400">{{ lang.t('create_first_document') }}</p>
                                 <RouterLink to="/documents/create" class="btn btn-primary mt-4">
-                                    Create Document
+                                    {{ lang.t('create_document') }}
                                 </RouterLink>
                             </div>
                         </td>
@@ -127,18 +127,18 @@
                             <Trash2 class="w-6 h-6 text-red-500" />
                         </div>
                         <div>
-                            <h3 class="font-bold text-gray-900">Delete Document</h3>
-                            <p class="text-xs text-gray-500">This action cannot be undone</p>
+                            <h3 class="font-bold text-gray-900">{{ lang.t('delete_document') }}</h3>
+                            <p class="text-xs text-gray-500">{{ lang.t('action_cannot_undone') }}</p>
                         </div>
                     </div>
                     <p class="text-sm text-gray-600 mb-6 leading-relaxed">
                         Are you sure you want to delete <span class="font-semibold text-gray-900">{{ deleteTarget.name }}</span>? All associated data will be removed.
                     </p>
                     <div class="flex gap-3 justify-end">
-                        <button @click="deleteTarget = null" class="btn btn-secondary">Cancel</button>
+                        <button @click="deleteTarget = null" class="btn btn-secondary">{{ lang.t('cancel') }}</button>
                         <button @click="deleteDocument" class="btn btn-danger" :disabled="deleting">
                             <Loader2 v-if="deleting" class="w-4 h-4 animate-spin" />
-                            <span v-else>Delete Document</span>
+                            <span v-else>{{ lang.t('delete_document') }}</span>
                         </button>
                     </div>
                 </div>
@@ -240,6 +240,9 @@ import { RouterLink } from 'vue-router';
 import { Plus, Search, Mail, Trash2, Loader2, X, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import axios from 'axios';
 import PdfCanvas from '@/components/PdfCanvas.vue';
+import { useLanguageStore } from '@/stores/language';
+
+const lang = useLanguageStore();
 
 const documents = ref([]);
 const loading = ref(true);
@@ -284,12 +287,11 @@ const prevPage = () => { if (currentPage.value > 1) currentPage.value--; };
 const nextPage = () => { if (currentPage.value < pdfTotalPages.value) currentPage.value++; };
 
 const getTranslatedLabel = (field, docLanguage) => {
-    const isGu = docLanguage === 'gu';
     if (field.field_type === 'name') {
-        return isGu ? 'નામ' : 'Recipient Name';
+        return lang.t('recipient_name');
     }
     if (field.field_type === 'village') {
-        return isGu ? 'ગામનું નામ' : 'Village Name';
+        return lang.t('village_name');
     }
     return field.label;
 };

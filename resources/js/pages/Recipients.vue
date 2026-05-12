@@ -1,13 +1,16 @@
 <template>
     <div class="space-y-6">
-        <div class="flex items-center justify-between gap-4">
-            <p class="text-sm text-gray-500">Manage invitation recipients and their details</p>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-gray-900">{{ lang.t('all_recipients') }}</h2>
+                <p class="text-sm text-gray-500">Manage invitation recipients and their details</p>
+            </div>
             <div class="flex flex-wrap gap-2">
                 <button @click="showCsvModal = true" class="btn btn-secondary">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
-                    Import CSV
+                    {{ lang.t('import_recipients') }}
                 </button>
                 <button v-if="contactPickerSupported" @click="pickFromContacts" :disabled="pickingContacts" class="btn btn-secondary">
                     <svg v-if="pickingContacts" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -17,13 +20,13 @@
                     <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    {{ pickingContacts ? 'Opening…' : 'From Contacts' }}
+                    {{ pickingContacts ? lang.t('opening') : lang.t('from_contacts') }}
                 </button>
                 <button @click="openAddModal" class="btn btn-primary">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
-                    Add Recipient
+                    {{ lang.t('add_recipient') }}
                 </button>
             </div>
         </div>
@@ -38,7 +41,7 @@
                 </div>
                 <div class="min-w-0">
                     <p class="text-xl font-bold text-gray-900">{{ recipients.length }}</p>
-                    <p class="text-xs text-gray-500 truncate">Total Recipients</p>
+                    <p class="text-xs text-gray-500 truncate">{{ lang.t('total_recipients') }}</p>
                 </div>
             </div>
             <div class="stat-card flex items-center gap-3">
@@ -49,7 +52,7 @@
                 </div>
                 <div class="min-w-0">
                     <p class="text-xl font-bold text-gray-900">{{ recipients.filter(r => r.sent).length }}</p>
-                    <p class="text-xs text-gray-500 truncate">Links Sent</p>
+                    <p class="text-xs text-gray-500 truncate">{{ lang.t('links_sent') }}</p>
                 </div>
             </div>
             <div class="stat-card flex items-center gap-3">
@@ -60,7 +63,7 @@
                 </div>
                 <div class="min-w-0">
                     <p class="text-xl font-bold text-gray-900">{{ recipients.filter(r => !r.sent).length }}</p>
-                    <p class="text-xs text-gray-500 truncate">Pending</p>
+                    <p class="text-xs text-gray-500 truncate">{{ lang.t('pending') }}</p>
                 </div>
             </div>
         </div>
@@ -71,10 +74,10 @@
                 <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <input v-model="search" type="text" class="input pl-10" placeholder="Search by name, mobile, village..." />
+                <input v-model="search" type="text" class="input pl-10" :placeholder="lang.t('search_recipients')" />
             </div>
             <select v-model="villageFilter" class="select sm:w-44">
-                <option value="">All Villages</option>
+                <option value="">{{ lang.t('all_villages') }}</option>
                 <option v-for="v in villages" :key="v" :value="v">{{ v }}</option>
             </select>
         </div>
@@ -87,11 +90,11 @@
                         <th>
                             <input type="checkbox" class="rounded" @change="toggleAll" />
                         </th>
-                        <th>Name (English)</th>
-                        <th>Name (Gujarati)</th>
-                        <th>Mobile</th>
-                        <th>Village</th>
-                        <th>Status</th>
+                        <th>{{ lang.t('name') }}</th>
+                        <th v-if="lang.currentLocale === 'en'">Name (Gujarati)</th>
+                        <th>{{ lang.t('phone') }}</th>
+                        <th>{{ lang.t('village') }}</th>
+                        <th>{{ lang.t('status') }}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -103,17 +106,17 @@
                         <td>
                             <div class="flex items-center gap-2.5">
                                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                                    {{ r.name_en[0] }}
+                                    {{ (lang.currentLocale === 'gu' ? r.name_gu || r.name_en : r.name_en)[0] }}
                                 </div>
-                                <span class="font-medium text-gray-900">{{ r.name_en }}</span>
+                                <span class="font-medium text-gray-900">{{ lang.currentLocale === 'gu' ? r.name_gu || r.name_en : r.name_en }}</span>
                             </div>
                         </td>
-                        <td class="text-gray-700" style="font-family: serif;">{{ r.name_gu }}</td>
+                        <td v-if="lang.currentLocale === 'en'" class="text-gray-700" style="font-family: serif;">{{ r.name_gu }}</td>
                         <td class="text-gray-600">{{ r.mobile }}</td>
-                        <td><span class="tag">{{ r.village_en }}</span></td>
+                        <td><span class="tag">{{ lang.currentLocale === 'gu' ? r.village_gu || r.village_en : r.village_en }}</span></td>
                         <td>
                             <span :class="['badge text-xs', r.sent ? 'badge-green' : 'badge-gray']">
-                                {{ r.sent ? 'Sent' : 'Pending' }}
+                                {{ r.sent ? lang.t('sent') : lang.t('pending') }}
                             </span>
                         </td>
                         <td>
@@ -160,10 +163,10 @@
 
             <!-- Bulk actions -->
             <div v-if="selected.length" class="flex items-center gap-3 px-4 py-3 bg-primary-50 border-t border-primary-100">
-                <span class="text-sm text-primary-700 font-medium">{{ selected.length }} selected</span>
-                <button class="btn btn-sm bg-green-500 text-white hover:bg-green-600">Send WhatsApp to All</button>
-                <button class="btn btn-secondary btn-sm">Generate Links</button>
-                <button @click="bulkDelete" class="btn btn-danger btn-sm ml-auto">Delete Selected</button>
+                <span class="text-sm text-primary-700 font-medium">{{ selected.length }} {{ lang.t('selected') }}</span>
+                <button class="btn btn-sm bg-green-500 text-white hover:bg-green-600">{{ lang.t('send_whatsapp_all') }}</button>
+                <button class="btn btn-secondary btn-sm">{{ lang.t('generate_links') }}</button>
+                <button @click="bulkDelete" class="btn btn-danger btn-sm ml-auto">{{ lang.t('delete_selected') }}</button>
             </div>
         </div>
 
@@ -172,7 +175,7 @@
             <div v-if="showAddModal" class="modal-overlay" @click.self="showAddModal = false">
                 <div class="modal">
                     <div class="flex items-center justify-between mb-5">
-                        <h3 class="text-lg font-bold text-gray-900">{{ isEditing ? 'Edit Recipient' : 'Add Recipient' }}</h3>
+                        <h3 class="text-lg font-bold text-gray-900">{{ isEditing ? lang.t('edit_recipient') : lang.t('add_recipient') }}</h3>
                         <button @click="showAddModal = false" class="btn btn-ghost btn-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -219,13 +222,13 @@
                             </div>
                         </div>
                         <div class="flex gap-2 justify-end mt-2">
-                            <button @click="showAddModal = false" class="btn btn-secondary">Cancel</button>
+                            <button @click="showAddModal = false" class="btn btn-secondary">{{ lang.t('cancel') }}</button>
                             <button @click="saveRecipient" class="btn btn-primary" :disabled="saving">
                                 <svg v-if="saving" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                 </svg>
-                                {{ isEditing ? 'Update Recipient' : 'Add Recipient' }}
+                                {{ isEditing ? lang.t('update_recipient') : lang.t('add_recipient') }}
                             </button>
                         </div>
                     </div>
@@ -591,6 +594,9 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import axios from 'axios';
 import PdfCanvas from '@/components/PdfCanvas.vue';
+import { useLanguageStore } from '@/stores/language';
+
+const lang = useLanguageStore();
 
 const search = ref('');
 const villageFilter = ref('');
@@ -817,11 +823,18 @@ const recipients = ref([]);
 
 const filteredRecipients = computed(() => {
     return recipients.value.filter(r => {
+        // If Gujarati is selected, show only those with Gujarati names
+        if (lang.currentLocale === 'gu' && !r.name_gu) {
+            return false;
+        }
+
         const q = search.value.toLowerCase();
         const matchSearch = !q || 
             r.name_en.toLowerCase().includes(q) || 
+            (r.name_gu && r.name_gu.includes(q)) ||
             r.mobile.includes(q) || 
-            (r.village_en && r.village_en.toLowerCase().includes(q));
+            (r.village_en && r.village_en.toLowerCase().includes(q)) ||
+            (r.village_gu && r.village_gu.includes(q));
         const matchVillage = !villageFilter.value || r.village_en === villageFilter.value;
         return matchSearch && matchVillage;
     });

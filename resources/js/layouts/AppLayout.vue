@@ -126,13 +126,17 @@
                 </button>
 
                 <div class="flex-1 min-w-0">
-                    <h1 class="text-base sm:text-lg font-bold text-gray-900 truncate">{{ pageTitle }}</h1>
+                    <h1 class="text-base sm:text-lg font-bold text-gray-900 truncate">{{ translatedPageTitle }}</h1>
                 </div>
 
-                <div class="flex items-center gap-2 ml-3">
-                    <span v-if="auth.isSuperAdmin" class="badge badge-amber hidden sm:inline-flex">Super Admin</span>
-                    <span v-else-if="auth.isAdmin" class="badge badge-primary hidden sm:inline-flex">Admin</span>
-                    <span v-else class="badge badge-green hidden sm:inline-flex">Member</span>
+                <div class="flex items-center gap-3 ml-3">
+                    <LanguageSwitcher />
+
+                    <div class="hidden sm:flex items-center gap-2">
+                        <span v-if="auth.isSuperAdmin" class="badge badge-amber">{{ lang.t('super_admin') }}</span>
+                        <span v-else-if="auth.isAdmin" class="badge badge-primary">{{ lang.t('admin') }}</span>
+                        <span v-else class="badge badge-green">{{ lang.t('member') }}</span>
+                    </div>
 
                     <button class="relative inline-flex items-center justify-center w-9 h-9 rounded-xl text-gray-500 hover:bg-gray-100 transition-all">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -150,7 +154,7 @@
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
-                        New Document
+                        {{ lang.t('new_document') }}
                     </RouterLink>
 
                     <!-- Mobile: icon-only button (admin/super_admin only) -->
@@ -178,13 +182,16 @@
 import { ref, computed, watch } from 'vue';
 import { RouterView, RouterLink, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useLanguageStore } from '@/stores/language';
 import { useBreakpoints } from '@vueuse/core';
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import {
     LayoutDashboard, FileText, Users, Link2, BarChart2,
     CreditCard, Settings, Shield, Building2, UserCog, Mail
 } from 'lucide-vue-next';
 
 const auth = useAuthStore();
+const lang = useLanguageStore();
 const route = useRoute();
 
 const bp = useBreakpoints({ md: 768 });
@@ -204,27 +211,27 @@ const showLabels = computed(() => {
 });
 
 const roleBadge = computed(() => {
-    if (auth.isSuperAdmin) return 'Super Admin';
-    if (auth.isAdmin) return 'Admin';
-    return 'Member';
+    if (auth.isSuperAdmin) return lang.t('super_admin');
+    if (auth.isAdmin) return lang.t('admin');
+    return lang.t('member');
 });
 
-const allNavItems = [
-    { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-    { label: 'Documents', to: '/documents', icon: FileText, adminOnly: true },
-    { label: 'Recipients', to: '/recipients', icon: Users },
-    { label: 'Analytics', to: '/analytics', icon: BarChart2 },
+const allNavItems = computed(() => [
+    { label: lang.t('dashboard'), to: '/dashboard', icon: LayoutDashboard },
+    { label: lang.t('documents'), to: '/documents', icon: FileText, adminOnly: true },
+    { label: lang.t('recipients'), to: '/recipients', icon: Users },
+    { label: lang.t('analytics'), to: '/analytics', icon: BarChart2 },
     { divider: true },
-    { label: 'Subscription', to: '/subscription', icon: CreditCard, memberHidden: true },
-    { label: 'Settings', to: '/settings', icon: Settings },
-    { label: 'Users', to: '/users', icon: UserCog, adminOnly: true },
+    { label: lang.t('subscription'), to: '/subscription', icon: CreditCard, memberHidden: true },
+    { label: lang.t('settings'), to: '/settings', icon: Settings },
+    { label: lang.t('users'), to: '/users', icon: UserCog, adminOnly: true },
     { divider: true, superAdminOnly: true },
     { label: 'Subscription Plans', to: '/admin/plans', icon: Shield, badge: 'Admin', superAdminOnly: true },
     { label: 'Tenant Management', to: '/admin/tenants', icon: Building2, superAdminOnly: true },
-];
+]);
 
 const visibleNavItems = computed(() => {
-    return allNavItems.filter(item => {
+    return allNavItems.value.filter(item => {
         if (item.superAdminOnly && !auth.isSuperAdmin) return false;
         if (item.adminOnly && !(auth.isAdmin || auth.isSuperAdmin)) return false;
         if (item.memberHidden && auth.isMember) return false;
@@ -233,19 +240,22 @@ const visibleNavItems = computed(() => {
 });
 
 const pageTitles = {
-    '/dashboard': 'Dashboard',
-    '/documents': 'Documents',
-    '/documents/create': 'Document Builder',
-    '/recipients': 'Recipients',
-    '/analytics': 'Analytics',
-    '/subscription': 'Subscription',
-    '/settings': 'Settings',
-    '/users': 'User Management',
+    '/dashboard': 'dashboard',
+    '/documents': 'documents',
+    '/documents/create': 'create_document',
+    '/recipients': 'recipients',
+    '/analytics': 'analytics',
+    '/subscription': 'subscription',
+    '/settings': 'settings',
+    '/users': 'users',
     '/admin/plans': 'Subscription Plans',
     '/admin/tenants': 'Tenant Management',
 };
 
-const pageTitle = computed(() => pageTitles[route.path] || 'InviteFlow');
+const translatedPageTitle = computed(() => {
+    const key = pageTitles[route.path];
+    return key ? lang.t(key) : 'InviteFlow';
+});
 
 function isActive(to) {
     if (to === '/dashboard') return route.path === '/dashboard';

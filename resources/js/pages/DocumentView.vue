@@ -23,13 +23,13 @@
                 >
                     <template v-if="downloading">
                         <Loader2 class="w-4 h-4 animate-spin" />
-                        <span>Preparing...</span>
+                        <span>{{ lang.t('preparing') }}</span>
                     </template>
                     <template v-else>
                         <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
-                        <span class="hidden xs:inline">Download</span>
+                        <span class="hidden xs:inline">{{ lang.t('download') }}</span>
                     </template>
                 </button>
             </div>
@@ -47,10 +47,10 @@
                         </svg>
                     </div>
                 </div>
-                <h2 class="text-3xl font-black text-slate-900 mb-3 tracking-tight">Access Denied</h2>
-                <p class="text-slate-500 text-base leading-relaxed mb-8">This invitation link has expired or the security token is invalid. Please contact the sender for a new link.</p>
+                <h2 class="text-3xl font-black text-slate-900 mb-3 tracking-tight">{{ lang.t('access_denied') }}</h2>
+                <p class="text-slate-500 text-base leading-relaxed mb-8">{{ lang.t('expired_link_desc') }}</p>
                 <a href="/" class="inline-flex items-center font-bold text-primary-600 hover:text-primary-700">
-                    Go to Homepage
+                    {{ lang.t('go_to_homepage') }}
                     <svg class="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
@@ -62,13 +62,13 @@
                 <!-- Info Card -->
                 <div v-if="doc" class="bg-white rounded-[2.5rem] p-6 sm:p-8 shadow-sm border border-slate-200/60 text-center space-y-2">
                     <div class="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 text-[10px] font-bold text-primary-700 uppercase tracking-wider mb-2">
-                        Personal Invitation
+                        {{ lang.t('personal_invitation') }}
                     </div>
                     <h1 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
-                        Namaste, {{ recipientName }}!
+                        {{ lang.t('namaste') }}, {{ recipientName }}!
                     </h1>
                     <p class="text-slate-500 font-medium text-lg italic">
-                        You have been invited to join us from <span class="text-slate-900 not-italic font-bold">{{ recipientVillage }}</span>.
+                        {{ lang.t('invited_from') }} <span class="text-slate-900 not-italic font-bold">{{ recipientVillage }}</span>.
                     </p>
                 </div>
 
@@ -83,7 +83,7 @@
                                 <div class="w-16 h-16 border-4 border-primary-100 rounded-full"></div>
                                 <div class="absolute top-0 left-0 w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
                             </div>
-                            <p class="text-sm font-bold text-slate-400 uppercase tracking-widest animate-pulse">Loading your invitation...</p>
+                            <p class="text-sm font-bold text-slate-400 uppercase tracking-widest animate-pulse">{{ lang.t('loading_invitation') }}</p>
                         </div>
                     </template>
 
@@ -162,7 +162,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                         </div>
-                        <p class="text-slate-400 font-medium">Document unavailable.</p>
+                        <p class="text-slate-400 font-medium">{{ lang.t('document_unavailable') }}</p>
                     </div>
                 </div>
 
@@ -183,6 +183,9 @@ import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { Loader2 } from 'lucide-vue-next';
 import PdfCanvas from '@/components/PdfCanvas.vue';
+import { useLanguageStore } from '@/stores/language';
+
+const lang = useLanguageStore();
 
 import { PDFDocument, rgb } from 'pdf-lib';
 
