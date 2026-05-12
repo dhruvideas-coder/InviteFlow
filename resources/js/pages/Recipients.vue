@@ -234,40 +234,40 @@
                     </div>
                     <div class="space-y-4">
                         <div class="form-group">
-                            <label class="label">Name (English) <span class="text-red-400">*</span></label>
-                            <input v-model="form.name_en" type="text" class="input" placeholder="e.g. Sureshbhai Patel" />
+                            <label class="label">{{ lang.t('name_english') }} <span class="text-red-400">*</span></label>
+                            <input v-model="form.name_en" type="text" class="input" :placeholder="lang.t('name_english')" />
                         </div>
                         <div class="form-group">
-                            <label class="label">Name (Gujarati)</label>
+                            <label class="label">{{ lang.t('name_gujarati') }}</label>
                             <div class="flex gap-2">
-                                <input v-model="form.name_gu" type="text" class="input" placeholder="Auto-converted or manual" style="font-family: serif;" />
+                                <input v-model="form.name_gu" type="text" class="input" :placeholder="lang.t('name_gujarati')" style="font-family: serif;" />
                                 <button @click="autoConvert('name')" :disabled="autoConverting" class="btn btn-secondary btn-sm shrink-0 text-xs flex items-center gap-1">
                                     <svg v-if="autoConverting" class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
-                                    {{ autoConverting ? 'Converting…' : 'Auto Convert' }}
+                                    {{ autoConverting ? lang.t('converting') : lang.t('auto_convert') }}
                                 </button>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Mobile Number <span class="text-red-400">*</span></label>
+                            <label class="label">{{ lang.t('mobile_number') }} <span class="text-red-400">*</span></label>
                             <input v-model="form.mobile" type="tel" class="input" placeholder="+91 98765 43210" />
                         </div>
                         <div class="form-group">
-                            <label class="label">Village (English)</label>
-                            <input v-model="form.village_en" type="text" class="input" placeholder="e.g. Anand" />
+                            <label class="label">{{ lang.t('village_english') }}</label>
+                            <input v-model="form.village_en" type="text" class="input" :placeholder="lang.t('village_english')" />
                         </div>
                         <div class="form-group">
-                            <label class="label">Village (Gujarati)</label>
+                            <label class="label">{{ lang.t('village_gujarati') }}</label>
                             <div class="flex gap-2">
-                                <input v-model="form.village_gu" type="text" class="input" placeholder="e.g. આણંદ" style="font-family: serif;" />
+                                <input v-model="form.village_gu" type="text" class="input" :placeholder="lang.t('village_gujarati')" style="font-family: serif;" />
                                 <button @click="autoConvert('village')" :disabled="autoConvertingVillage" class="btn btn-secondary btn-sm shrink-0 text-xs flex items-center gap-1">
                                     <svg v-if="autoConvertingVillage" class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
-                                    {{ autoConvertingVillage ? 'Converting…' : 'Auto Convert' }}
+                                    {{ autoConvertingVillage ? lang.t('converting') : lang.t('auto_convert') }}
                                 </button>
                             </div>
                         </div>
@@ -300,8 +300,8 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 class="text-lg font-bold text-gray-900">Send Invitation</h3>
-                                    <p class="text-xs text-gray-500">To: {{ selectedRecipient?.name_en }} • {{ formatMobile(selectedRecipient?.mobile) }}</p>
+                                    <h3 class="text-lg font-bold text-gray-900">{{ lang.t('send_invitation') }}</h3>
+                                    <p class="text-xs text-gray-500">{{ lang.t('to') }}: {{ selectedRecipient?.name_en }} • {{ formatMobile(selectedRecipient?.mobile) }}</p>
                                 </div>
                             </div>
                             <button @click="showWhatsAppModal = false" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
@@ -317,18 +317,18 @@
                             <div class="space-y-3">
                                 <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
                                     <div class="w-5 h-5 rounded-md bg-primary-100 flex items-center justify-center text-primary-600 text-[10px]">1</div>
-                                    Select Document Template
+                                    {{ lang.t('select_template') }}
                                 </label>
                                 <div v-if="loadingDocs" class="flex items-center gap-2 text-xs text-gray-400 p-3 bg-gray-50 rounded-xl">
                                     <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
-                                    Loading documents...
+                                    {{ lang.t('loading') }}...
                                 </div>
                                 <div v-else-if="docs.length === 0" class="p-4 bg-red-50 rounded-xl text-center border border-red-100">
-                                    <p class="text-xs text-red-500">No active documents found. Please create one first.</p>
-                                    <RouterLink to="/documents/create" class="text-xs text-primary-600 font-bold mt-2 inline-block hover:underline">Create Document</RouterLink>
+                                    <p class="text-xs text-red-500">{{ lang.t('no_templates_found') }}</p>
+                                    <RouterLink to="/documents/create" class="text-xs text-primary-600 font-bold mt-2 inline-block hover:underline">{{ lang.t('create_document') }}</RouterLink>
                                 </div>
                                 <div v-else class="relative group">
                                     <select 
@@ -336,7 +336,7 @@
                                         class="select w-full pl-11 h-12 bg-white border-gray-200 focus:border-primary-500 focus:ring-primary-500/20 transition-all rounded-xl appearance-none"
                                     >
                                         <option v-for="doc in docs" :key="doc.id" :value="doc.id">
-                                            {{ doc.name }} ({{ doc.fields_count || 0 }} fields)
+                                            {{ doc.name }} ({{ doc.fields_count || 0 }} {{ lang.t('fields') }})
                                         </option>
                                     </select>
                                     <div class="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -359,11 +359,11 @@
                                 <div class="flex items-center justify-between">
                                     <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
                                         <div class="w-5 h-5 rounded-md bg-primary-100 flex items-center justify-center text-primary-600 text-[10px]">2</div>
-                                        Document Preview
+                                        {{ lang.t('preview') }}
                                     </label>
                                     <div class="flex items-center gap-2">
                                         <span class="text-[10px] bg-primary-50 text-primary-700 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider border border-primary-100">
-                                            {{ selectedDoc.language === 'gu' ? 'Gujarati' : 'English' }}
+                                            {{ selectedDoc.language === 'gu' ? lang.t('gujarati') : lang.t('english') }}
                                         </span>
                                         <!-- Page Navigation -->
                                         <div v-if="!isImage(selectedDoc) && pdfTotalPages > 1" class="flex items-center bg-white border border-gray-100 rounded-lg p-0.5 shadow-sm">
@@ -439,7 +439,7 @@
                                     <div class="absolute top-4 right-4 z-10">
                                         <div class="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/50 text-[10px] font-bold text-primary-600 shadow-sm flex items-center gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse"></div>
-                                            Live Preview
+                                            {{ lang.t('live_preview') }}
                                         </div>
                                     </div>
 
@@ -455,8 +455,8 @@
                                         </svg>
                                     </div>
                                     <div class="flex-1">
-                                        <p class="text-xs font-bold text-gray-900">Personalization Active</p>
-                                        <p class="text-[10px] text-gray-500">The recipient's details (name, village, etc.) will appear exactly as shown in the preview above across <b>{{ selectedDoc.fields?.length || 0 }}</b> positions.</p>
+                                        <p class="text-xs font-bold text-gray-900">{{ lang.t('personalization_active') }}</p>
+                                        <p class="text-[10px] text-gray-500">{{ lang.t('details_will_appear', { count: selectedDoc.fields?.length || 0 }) }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -464,7 +464,7 @@
 
                         <!-- Footer -->
                         <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between shrink-0">
-                            <button @click="showWhatsAppModal = false" class="btn btn-secondary">Cancel</button>
+                            <button @click="showWhatsAppModal = false" class="btn btn-secondary">{{ lang.t('cancel') }}</button>
                             <button 
                                 @click="generateAndSend" 
                                 class="btn btn-primary bg-green-600 hover:bg-green-700 border-green-600 gap-2 px-6"
@@ -477,7 +477,7 @@
                                 <svg v-else class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
                                 </svg>
-                                Send via WhatsApp
+                                {{ lang.t('send_whatsapp') }}
                             </button>
                         </div>
                     </div>
@@ -492,8 +492,8 @@
                     <div class="modal max-w-lg w-[95%] p-0 overflow-hidden">
                         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                             <div>
-                                <h3 class="text-lg font-bold text-gray-900">Add from Contacts</h3>
-                                <p class="text-xs text-gray-500 mt-0.5">{{ pickedContacts.length }} contact{{ pickedContacts.length !== 1 ? 's' : '' }} selected — review before adding</p>
+                                <h3 class="text-lg font-bold text-gray-900">{{ lang.t('add_from_contacts') }}</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ lang.t('contacts_selected', { count: pickedContacts.length }) }}</p>
                             </div>
                             <button @click="showContactsModal = false" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -536,9 +536,9 @@
                         </div>
 
                         <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-                            <span class="text-xs text-gray-500">{{ pickedContacts.filter(c => !c.skip).length }} will be added</span>
+                            <span class="text-xs text-gray-500">{{ pickedContacts.filter(c => !c.skip).length }} {{ lang.t('will_be_added') }}</span>
                             <div class="flex gap-2">
-                                <button @click="showContactsModal = false" class="btn btn-secondary btn-sm">Cancel</button>
+                                <button @click="showContactsModal = false" class="btn btn-secondary btn-sm">{{ lang.t('cancel') }}</button>
                                 <button
                                     @click="savePickedContacts"
                                     :disabled="savingContacts || pickedContacts.every(c => c.skip)"
@@ -548,7 +548,7 @@
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
-                                    Add {{ pickedContacts.filter(c => !c.skip).length }} Recipient{{ pickedContacts.filter(c => !c.skip).length !== 1 ? 's' : '' }}
+                                    {{ lang.t('add_recipients', { count: pickedContacts.filter(c => !c.skip).length }) }}
                                 </button>
                             </div>
                         </div>
@@ -571,8 +571,8 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 class="text-lg font-bold text-gray-900">Personalized Links</h3>
-                                    <p class="text-xs text-gray-500">For {{ selectedRecipient?.name_en }} • {{ formatMobile(selectedRecipient?.mobile) }}</p>
+                                    <h3 class="text-lg font-bold text-gray-900">{{ lang.t('personalized_links') }}</h3>
+                                    <p class="text-xs text-gray-500">{{ selectedRecipient?.name_en }} • {{ formatMobile(selectedRecipient?.mobile) }}</p>
                                 </div>
                             </div>
                             <button @click="showLinksModal = false" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
@@ -590,14 +590,14 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.826a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                     </svg>
                                 </div>
-                                <p class="text-gray-500 text-sm">No links generated yet for this recipient.</p>
-                                <button @click="showLinksModal = false; openWhatsAppModal(selectedRecipient)" class="btn btn-primary btn-sm mt-4">Generate First Link</button>
+                                <p class="text-gray-500 text-sm">{{ lang.t('no_links_generated') }}</p>
+                                <button @click="showLinksModal = false; openWhatsAppModal(selectedRecipient)" class="btn btn-primary btn-sm mt-4">{{ lang.t('generate_first_link') }}</button>
                             </div>
                             <div v-else class="space-y-3">
                                 <div v-for="link in selectedRecipient.invitation_links" :key="link.id" class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-primary-200 transition-colors group">
                                     <div class="min-w-0">
-                                        <p class="text-sm font-bold text-gray-900 truncate">{{ link.document?.name || 'Unknown Document' }}</p>
-                                        <p class="text-[10px] text-gray-500 mt-0.5">Created on {{ formatDate(link.created_at) }}</p>
+                                        <p class="text-sm font-bold text-gray-900 truncate">{{ link.document?.name || lang.t('unknown_document') }}</p>
+                                        <p class="text-[10px] text-gray-500 mt-0.5">{{ lang.t('created_on', { date: formatDate(link.created_at) }) }}</p>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <button 
@@ -611,7 +611,7 @@
                                             <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                             </svg>
-                                            <span class="text-xs">{{ copiedToken === link.token ? 'Copied' : 'Copy' }}</span>
+                                            <span class="text-xs">{{ copiedToken === link.token ? lang.t('copied') : lang.t('copy') }}</span>
                                         </button>
                                         <a 
                                             :href="`/doc/view/${link.token}`" 
@@ -621,7 +621,7 @@
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                             </svg>
-                                            <span class="text-xs">View</span>
+                                            <span class="text-xs">{{ lang.t('view') }}</span>
                                         </a>
                                     </div>
                                 </div>
@@ -630,7 +630,7 @@
 
                         <!-- Footer -->
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
-                            <button @click="showLinksModal = false" class="btn btn-secondary btn-sm">Close</button>
+                            <button @click="showLinksModal = false" class="btn btn-secondary btn-sm">{{ lang.t('close') }}</button>
                         </div>
                     </div>
                 </div>
@@ -644,8 +644,8 @@
                     <div class="modal max-w-2xl w-[95%] p-0 overflow-hidden">
                         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                             <div>
-                                <h3 class="text-lg font-bold text-gray-900">Import Recipients</h3>
-                                <p class="text-xs text-gray-500 mt-0.5">Upload CSV or Excel file with 'Display Name' and 'Mobile Phone' columns</p>
+                                <h3 class="text-lg font-bold text-gray-900">{{ lang.t('import_recipients') }}</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ lang.t('import_desc') }}</p>
                             </div>
                             <button @click="showCsvModal = false" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -663,8 +663,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                     </svg>
                                 </div>
-                                <h4 class="text-sm font-bold text-gray-900">Click to upload or drag and drop</h4>
-                                <p class="text-xs text-gray-500 mt-1">CSV, XLSX or XLS files supported</p>
+                                <h4 class="text-sm font-bold text-gray-900">{{ lang.t('upload_instruction') }}</h4>
+                                <p class="text-xs text-gray-500 mt-1">{{ lang.t('file_types_supported') }}</p>
                             </div>
 
                             <!-- Error Message -->
@@ -684,8 +684,8 @@
                                                 <th class="p-3">
                                                     <input type="checkbox" class="rounded" :checked="selectedImportRows.length === importedData.length" @change="toggleAllImport" />
                                                 </th>
-                                                <th class="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Display Name</th>
-                                                <th class="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Mobile Phone</th>
+                                                <th class="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{{ lang.t('display_name') }}</th>
+                                                <th class="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{{ lang.t('mobile_phone') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-50">
@@ -704,10 +704,10 @@
 
                         <!-- Footer -->
                         <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-                            <button @click="importedData = []; importError = ''" v-if="importedData.length" class="btn btn-secondary btn-sm">Clear</button>
+                            <button @click="importedData = []; importError = ''" v-if="importedData.length" class="btn btn-secondary btn-sm">{{ lang.t('clear') }}</button>
                             <div v-else></div>
                             <div class="flex gap-2">
-                                <button @click="showCsvModal = false" class="btn btn-secondary btn-sm">Cancel</button>
+                                <button @click="showCsvModal = false" class="btn btn-secondary btn-sm">{{ lang.t('cancel') }}</button>
                                 <button 
                                     v-if="importedData.length" 
                                     @click="saveImportedRecipients" 
@@ -718,7 +718,7 @@
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
-                                    Import {{ selectedImportRows.length }} Recipients
+                                    {{ lang.t('import_recipients_count', { count: selectedImportRows.length }) }}
                                 </button>
                             </div>
                         </div>

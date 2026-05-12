@@ -33,9 +33,14 @@
                 </div>
                 <div class="form-group">
                     <label class="label">Language</label>
-                    <select v-model="settings.lang" class="select">
-                        <option value="en">English</option>
-                        <option value="gu">Gujarati</option>
+                    <select 
+                        :value="lang.currentLocale" 
+                        @change="lang.setLocale($event.target.value)"
+                        class="select"
+                    >
+                        <option v-for="(l, code) in lang.locales" :key="code" :value="code">
+                            {{ l.name }}
+                        </option>
                     </select>
                 </div>
             </div>
@@ -96,8 +101,10 @@
 <script setup>
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { useLanguageStore } from '@/stores/language';
 
 const auth = useAuthStore();
+const lang = useLanguageStore();
 
 const settings = ref({
     name: 'Admin User',

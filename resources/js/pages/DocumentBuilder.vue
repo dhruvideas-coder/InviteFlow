@@ -70,6 +70,14 @@
                             <label class="label">{{ lang.t('description') }} <span class="text-gray-400 font-normal">({{ lang.t('optional') }})</span></label>
                             <textarea v-model="form.description" class="input min-h-[120px] py-3 resize-none" :placeholder="lang.t('description_placeholder')"></textarea>
                         </div>
+                        <div class="form-group">
+                            <label class="label">{{ lang.t('language_selection') }}</label>
+                            <select v-model="form.language" class="select bg-white border-gray-200">
+                                <option value="en">English (Display English Names)</option>
+                                <option value="gu">Gujarati (Display Gujarati Names)</option>
+                            </select>
+                            <p class="text-[10px] text-gray-400 mt-2">Choose which language version of recipient details to use for this document.</p>
+                        </div>
                     </div>
 
                     <div class="mt-10 flex justify-end">
@@ -409,12 +417,8 @@
                                         </div>
                                     </div>
                                     <div class="pt-4 border-t border-gray-100">
-                                        <label class="text-[10px] text-gray-400 font-bold uppercase mb-2 block">{{ lang.t('language_selection') }}</label>
-                                        <select v-model="form.language" class="select bg-white border-gray-200">
-                                            <option value="en">English (Display English Names)</option>
-                                            <option value="gu">Gujarati (Display Gujarati Names)</option>
-                                        </select>
-                                        <p class="text-[10px] text-gray-400 mt-2">This determines which name version is shown on the final document.</p>
+                                        <label class="text-[10px] text-gray-400 font-bold uppercase mb-1">Language</label>
+                                        <p class="text-sm font-bold text-gray-900">{{ form.language === 'gu' ? 'Gujarati' : 'English' }}</p>
                                     </div>
                                 </div>
                             </div>

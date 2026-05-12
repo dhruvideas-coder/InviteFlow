@@ -9,7 +9,12 @@
 
         <div class="w-full h-full lg:h-[85dvh] lg:max-h-[780px] lg:max-w-[1100px] mx-auto p-4 sm:p-6 lg:p-0 relative z-10 flex items-center justify-center">
 
-            <div class="bg-white/80 backdrop-blur-2xl border border-white shadow-2xl rounded-3xl lg:rounded-[2.5rem] overflow-hidden flex flex-col lg:flex-row w-full h-full lg:h-full max-w-md lg:max-w-none">
+            <div class="bg-white/80 backdrop-blur-2xl border border-white shadow-2xl rounded-3xl lg:rounded-[2.5rem] overflow-hidden flex flex-col lg:flex-row w-full h-full lg:h-full max-w-md lg:max-w-none relative">
+                
+                <!-- Language Switcher -->
+                <div class="absolute top-6 right-6 z-30">
+                    <LanguageSwitcher />
+                </div>
 
                 <!-- Left Panel — Branding -->
                 <div class="hidden lg:flex lg:w-[52%] relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-indigo-900 p-10 xl:p-14 flex-col justify-between">
@@ -131,6 +136,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 
 const route = useRoute();
 const errorMessage = ref(null);

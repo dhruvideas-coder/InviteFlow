@@ -54,7 +54,9 @@ const langStore = useLanguageStore();
 const isOpen = ref(false);
 const dropdownRef = ref(null);
 
-const currentLanguage = computed(() => langStore.locales[langStore.currentLocale]);
+const currentLanguage = computed(() => {
+    return langStore.locales[langStore.currentLocale] || langStore.locales['en'];
+});
 
 const selectLanguage = (code) => {
     langStore.setLocale(code);

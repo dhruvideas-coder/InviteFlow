@@ -152,7 +152,44 @@ export const useLanguageStore = defineStore('language', () => {
             send_via_whatsapp: 'Send via WhatsApp',
             share_invitations: 'Share invitations',
             view_analytics: 'View Analytics',
-            track_performance: 'Track performance'
+            track_performance: 'Track performance',
+            import_desc: 'Upload CSV or Excel file with recipients details',
+            upload_instruction: 'Click to upload or drag and drop',
+            file_types_supported: 'CSV, XLSX or XLS files supported',
+            display_name: 'Display Name',
+            mobile_phone: 'Mobile Phone',
+            clear: 'Clear',
+            import_recipients_count: 'Import {count} Recipients',
+            name_english: 'Name (English)',
+            name_gujarati: 'Name (Gujarati)',
+            converting: 'Converting...',
+            auto_convert: 'Auto Convert',
+            mobile_number: 'Mobile Number',
+            village_english: 'Village (English)',
+            village_gujarati: 'Village (Gujarati)',
+            send_invitation: 'Send Invitation',
+            to: 'To',
+            select_template: 'Select Document Template',
+            loading: 'Loading',
+            no_templates_found: 'No active documents found. Please create one first.',
+            gujarati: 'Gujarati',
+            english: 'English',
+            live_preview: 'Live Preview',
+            personalization_active: 'Personalization Active',
+            details_will_appear: "The recipient's details (name, village, etc.) will appear exactly as shown in the preview above across {count} positions.",
+            send_whatsapp: 'Send via WhatsApp',
+            add_from_contacts: 'Add from Contacts',
+            contacts_selected: '{count} contact(s) selected — review before adding',
+            will_be_added: 'will be added',
+            no_links_generated: 'No links generated yet for this recipient.',
+            generate_first_link: 'Generate First Link',
+            unknown_document: 'Unknown Document',
+            created_on: 'Created on {date}',
+            copied: 'Copied',
+            copy: 'Copy',
+            close: 'Close',
+            import: 'Import',
+            preview: 'Preview'
         },
         gu: {
             dashboard: 'ડેશબોર્ડ',
@@ -288,7 +325,44 @@ export const useLanguageStore = defineStore('language', () => {
             send_via_whatsapp: 'વોટ્સએપ દ્વારા મોકલો',
             share_invitations: 'આમંત્રણો શેર કરો',
             view_analytics: 'એનાલિટિક્સ જુઓ',
-            track_performance: 'પ્રદર્શન ટ્રૅક કરો'
+            track_performance: 'પ્રદર્શન ટ્રૅક કરો',
+            import_desc: 'લેનારાઓની વિગતો સાથે CSV અથવા Excel ફાઇલ અપલોડ કરો',
+            upload_instruction: 'અપલોડ કરવા માટે ક્લિક કરો અથવા ખેંચો અને મૂકો',
+            file_types_supported: 'CSV, XLSX અથવા XLS ફાઇલો સપોર્ટેડ છે',
+            display_name: 'નામ',
+            mobile_phone: 'મોબાઇલ ફોન',
+            clear: 'સાફ કરો',
+            import_recipients_count: '{count} લેનારાઓ આયાત કરો',
+            name_english: 'નામ (અંગ્રેજી)',
+            name_gujarati: 'નામ (ગુજરાતી)',
+            converting: 'રૂપાંતરિત થઈ રહ્યું છે...',
+            auto_convert: 'ઓટો કન્વર્ટ',
+            mobile_number: 'મોબાઇલ નંબર',
+            village_english: 'ગામ (અંગ્રેજી)',
+            village_gujarati: 'ગામ (ગુજરાતી)',
+            send_invitation: 'આમંત્રણ મોકલો',
+            to: 'પ્રતિ',
+            select_template: 'દસ્તાવેજ ટેમ્પલેટ પસંદ કરો',
+            loading: 'લોડ થઈ રહ્યું છે',
+            no_templates_found: 'કોઈ સક્રિય દસ્તાવેજો મળ્યા નથી. કૃપા કરીને પહેલા એક બનાવો.',
+            gujarati: 'ગુજરાતી',
+            english: 'અંગ્રેજી',
+            live_preview: 'લાઇવ પ્રિવ્યૂ',
+            personalization_active: 'વૈયક્તિકરણ સક્રિય',
+            details_will_appear: "લેનારની વિગતો (નામ, ગામ, વગેરે) {count} જગ્યાઓ પર ઉપરના પ્રિવ્યૂમાં બતાવ્યા પ્રમાણે દેખાશે.",
+            send_whatsapp: 'વોટ્સએપ દ્વારા મોકલો',
+            add_from_contacts: 'કોન્ટેક્ટ્સ માંથી ઉમેરો',
+            contacts_selected: '{count} કોન્ટેક્ટ પસંદ કરેલ — ઉમેરતા પહેલા સમીક્ષા કરો',
+            will_be_added: 'ઉમેરવામાં આવશે',
+            no_links_generated: 'આ લેનાર માટે હજી સુધી કોઈ લિંક્સ જનરેટ થઈ નથી.',
+            generate_first_link: 'પ્રથમ લિંક બનાવો',
+            unknown_document: 'અજ્ઞાત દસ્તાવેજ',
+            created_on: '{date} ના રોજ બનાવેલ',
+            copied: 'કોપી કરેલ',
+            copy: 'કોપી કરો',
+            close: 'બંધ કરો',
+            import: 'આયાત કરો',
+            preview: 'પ્રિવ્યૂ'
         }
     });
 
@@ -300,8 +374,12 @@ export const useLanguageStore = defineStore('language', () => {
         }
     };
 
-    const t = (key) => {
-        return translations.value[currentLocale.value][key] || key;
+    const t = (key, params = {}) => {
+        let text = translations.value[currentLocale.value][key] || key;
+        Object.keys(params).forEach(p => {
+            text = text.replace(`{${p}}`, params[p]);
+        });
+        return text;
     };
 
     return {
