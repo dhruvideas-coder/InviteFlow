@@ -1,0 +1,288 @@
+{
+  "_PdfCanvas-BD_rW6wP.js": {
+    "file": "assets/PdfCanvas-BD_rW6wP.js",
+    "name": "PdfCanvas",
+    "imports": [
+      "resources/js/app.js"
+    ],
+    "dynamicImports": [
+      "node_modules/pdfjs-dist/legacy/build/pdf.mjs"
+    ]
+  },
+  "__plugin-vue_export-helper-DlAUqK2U.js": {
+    "file": "assets/_plugin-vue_export-helper-DlAUqK2U.js",
+    "name": "_plugin-vue_export-helper"
+  },
+  "_chart-no-axes-column-D_whIAyX.js": {
+    "file": "assets/chart-no-axes-column-D_whIAyX.js",
+    "name": "chart-no-axes-column",
+    "imports": [
+      "_createLucideIcon-DHcDlwyH.js"
+    ]
+  },
+  "_createLucideIcon-DHcDlwyH.js": {
+    "file": "assets/createLucideIcon-DHcDlwyH.js",
+    "name": "createLucideIcon",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_file-text-CXZJ97eb.js": {
+    "file": "assets/file-text-CXZJ97eb.js",
+    "name": "file-text",
+    "imports": [
+      "_createLucideIcon-DHcDlwyH.js"
+    ]
+  },
+  "_loader-circle-aqIvEpnB.js": {
+    "file": "assets/loader-circle-aqIvEpnB.js",
+    "name": "loader-circle",
+    "imports": [
+      "_createLucideIcon-DHcDlwyH.js"
+    ]
+  },
+  "_message-circle-BW-qEKTP.js": {
+    "file": "assets/message-circle-BW-qEKTP.js",
+    "name": "message-circle",
+    "imports": [
+      "_createLucideIcon-DHcDlwyH.js"
+    ]
+  },
+  "_upload-CwOEHjlY.js": {
+    "file": "assets/upload-CwOEHjlY.js",
+    "name": "upload",
+    "imports": [
+      "_createLucideIcon-DHcDlwyH.js"
+    ]
+  },
+  "_users-CedNKzNo.js": {
+    "file": "assets/users-CedNKzNo.js",
+    "name": "users",
+    "imports": [
+      "_createLucideIcon-DHcDlwyH.js"
+    ]
+  },
+  "_x-Cu0tGUSA.js": {
+    "file": "assets/x-Cu0tGUSA.js",
+    "name": "x",
+    "imports": [
+      "_createLucideIcon-DHcDlwyH.js"
+    ]
+  },
+  "node_modules/pdfjs-dist/legacy/build/pdf.mjs": {
+    "file": "assets/pdf-C2_sJa3b.js",
+    "name": "pdf",
+    "src": "node_modules/pdfjs-dist/legacy/build/pdf.mjs",
+    "isDynamicEntry": true
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-DqaIwxQf.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-KRSweMzg.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "dynamicImports": [
+      "resources/js/pages/Login.vue",
+      "resources/js/layouts/AppLayout.vue",
+      "resources/js/pages/Dashboard.vue",
+      "resources/js/pages/Documents.vue",
+      "resources/js/pages/DocumentBuilder.vue",
+      "resources/js/pages/DocumentBuilder.vue",
+      "resources/js/pages/Recipients.vue",
+      "resources/js/pages/Analytics.vue",
+      "resources/js/pages/Subscription.vue",
+      "resources/js/pages/Settings.vue",
+      "resources/js/pages/Users.vue",
+      "resources/js/pages/admin/Plans.vue",
+      "resources/js/pages/admin/Tenants.vue",
+      "resources/js/pages/DocumentView.vue",
+      "resources/js/pages/NotFound.vue"
+    ]
+  },
+  "resources/js/layouts/AppLayout.vue": {
+    "file": "assets/AppLayout-CSLJk2iZ.js",
+    "name": "AppLayout",
+    "src": "resources/js/layouts/AppLayout.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_createLucideIcon-DHcDlwyH.js",
+      "_file-text-CXZJ97eb.js",
+      "_users-CedNKzNo.js",
+      "_chart-no-axes-column-D_whIAyX.js"
+    ],
+    "css": [
+      "assets/AppLayout-DhXuOyLB.css"
+    ]
+  },
+  "resources/js/pages/Analytics.vue": {
+    "file": "assets/Analytics-Dppy-F8v.js",
+    "name": "Analytics",
+    "src": "resources/js/pages/Analytics.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_file-text-CXZJ97eb.js",
+      "_message-circle-BW-qEKTP.js",
+      "_users-CedNKzNo.js",
+      "_createLucideIcon-DHcDlwyH.js"
+    ]
+  },
+  "resources/js/pages/Dashboard.vue": {
+    "file": "assets/Dashboard-BLqawFnP.js",
+    "name": "Dashboard",
+    "src": "resources/js/pages/Dashboard.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_file-text-CXZJ97eb.js",
+      "_users-CedNKzNo.js",
+      "_message-circle-BW-qEKTP.js",
+      "_upload-CwOEHjlY.js",
+      "_chart-no-axes-column-D_whIAyX.js",
+      "_createLucideIcon-DHcDlwyH.js"
+    ]
+  },
+  "resources/js/pages/DocumentBuilder.vue": {
+    "file": "assets/DocumentBuilder-6jHwzJj6.js",
+    "name": "DocumentBuilder",
+    "src": "resources/js/pages/DocumentBuilder.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_PdfCanvas-BD_rW6wP.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_loader-circle-aqIvEpnB.js",
+      "_createLucideIcon-DHcDlwyH.js",
+      "_upload-CwOEHjlY.js",
+      "_file-text-CXZJ97eb.js",
+      "_x-Cu0tGUSA.js"
+    ],
+    "css": [
+      "assets/DocumentBuilder-DRH-N5Zu.css"
+    ]
+  },
+  "resources/js/pages/DocumentView.vue": {
+    "file": "assets/DocumentView-Bq0j0uyv.js",
+    "name": "DocumentView",
+    "src": "resources/js/pages/DocumentView.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_PdfCanvas-BD_rW6wP.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_loader-circle-aqIvEpnB.js",
+      "_createLucideIcon-DHcDlwyH.js"
+    ],
+    "css": [
+      "assets/DocumentView-DLYwq5Qx.css"
+    ]
+  },
+  "resources/js/pages/Documents.vue": {
+    "file": "assets/Documents-DpMsM1-5.js",
+    "name": "Documents",
+    "src": "resources/js/pages/Documents.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_PdfCanvas-BD_rW6wP.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_createLucideIcon-DHcDlwyH.js",
+      "_x-Cu0tGUSA.js",
+      "_loader-circle-aqIvEpnB.js"
+    ],
+    "css": [
+      "assets/Documents-CBimehBq.css"
+    ]
+  },
+  "resources/js/pages/Login.vue": {
+    "file": "assets/Login-BlBXc_BL.js",
+    "name": "Login",
+    "src": "resources/js/pages/Login.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/pages/NotFound.vue": {
+    "file": "assets/NotFound-CY74buAS.js",
+    "name": "NotFound",
+    "src": "resources/js/pages/NotFound.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/pages/Recipients.vue": {
+    "file": "assets/Recipients-BZTauCPq.js",
+    "name": "Recipients",
+    "src": "resources/js/pages/Recipients.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_PdfCanvas-BD_rW6wP.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/Recipients-E8i5eM6d.css"
+    ]
+  },
+  "resources/js/pages/Settings.vue": {
+    "file": "assets/Settings-ygXINkz_.js",
+    "name": "Settings",
+    "src": "resources/js/pages/Settings.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/pages/Subscription.vue": {
+    "file": "assets/Subscription-BNHGtctC.js",
+    "name": "Subscription",
+    "src": "resources/js/pages/Subscription.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/pages/Users.vue": {
+    "file": "assets/Users-BIDtCpG_.js",
+    "name": "Users",
+    "src": "resources/js/pages/Users.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/Users-vJDsHDPS.css"
+    ]
+  },
+  "resources/js/pages/admin/Plans.vue": {
+    "file": "assets/Plans-D-M5lMfs.js",
+    "name": "Plans",
+    "src": "resources/js/pages/admin/Plans.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/pages/admin/Tenants.vue": {
+    "file": "assets/Tenants-DxLzJrHf.js",
+    "name": "Tenants",
+    "src": "resources/js/pages/admin/Tenants.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  }
+}
