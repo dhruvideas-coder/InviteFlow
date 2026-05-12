@@ -3,7 +3,6 @@ import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
-import fs from 'fs';
 
 export default defineConfig({
     plugins: [
@@ -13,14 +12,6 @@ export default defineConfig({
         }),
         vue(),
         tailwindcss(),
-        {
-            name: 'copy-pdfjs-worker',
-            buildStart() {
-                const src = resolve(__dirname, 'node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs');
-                const dest = resolve(__dirname, 'public/pdf.worker.min.mjs');
-                fs.copyFileSync(src, dest);
-            },
-        },
     ],
     resolve: {
         alias: {

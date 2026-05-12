@@ -23,6 +23,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, onBeforeUnmount, nextTick } from 'vue';
+import pdfjsWorkerUrl from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
 
 const props = defineProps({
     src: { type: String, required: true },
@@ -51,7 +52,7 @@ let renderSeq = 0; // each call claims a slot; stale calls bail out silently
 async function loadPdfJs() {
     if (_pdfjsLib) return _pdfjsLib;
     _pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
-    _pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+    _pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
     return _pdfjsLib;
 }
 
