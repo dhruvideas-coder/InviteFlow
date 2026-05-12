@@ -1,0 +1,156 @@
+<template>
+    <div class="h-[100dvh] w-full relative flex items-center justify-center overflow-hidden bg-slate-50 selection:bg-primary-500 selection:text-white">
+
+        <!-- Ambient Background -->
+        <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-primary-400/10 blur-[120px] animate-pulse"></div>
+            <div class="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-indigo-500/10 blur-[120px] animate-pulse" style="animation-delay: 2s;"></div>
+        </div>
+
+        <div class="w-full h-full lg:h-[85dvh] lg:max-h-[780px] lg:max-w-[1100px] mx-auto p-4 sm:p-6 lg:p-0 relative z-10 flex items-center justify-center">
+
+            <div class="bg-white/80 backdrop-blur-2xl border border-white shadow-2xl rounded-3xl lg:rounded-[2.5rem] overflow-hidden flex flex-col lg:flex-row w-full h-full lg:h-full max-w-md lg:max-w-none">
+
+                <!-- Left Panel — Branding -->
+                <div class="hidden lg:flex lg:w-[52%] relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-indigo-900 p-10 xl:p-14 flex-col justify-between">
+
+                    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+                        <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-white/5 blur-3xl"></div>
+                        <div class="absolute top-1/3 -left-24 w-64 h-64 rounded-full bg-primary-500/20 blur-2xl"></div>
+                        <div class="absolute -bottom-20 right-1/4 w-80 h-80 rounded-full bg-indigo-500/30 blur-3xl"></div>
+                        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px); background-size: 32px 32px;"></div>
+                    </div>
+
+                    <!-- Logo -->
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-3.5 mb-8">
+                            <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl">
+                                <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <span class="text-white font-extrabold text-2xl tracking-tight">InviteFlow</span>
+                        </div>
+
+                        <h1 class="text-4xl xl:text-5xl font-extrabold text-white leading-[1.1] mb-4">
+                            Beautiful invitations,<br />
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-200 to-indigo-200">delivered instantly.</span>
+                        </h1>
+                        <p class="text-primary-200/70 text-sm leading-relaxed max-w-sm">
+                            Create personalized invitation documents, share them via WhatsApp, and track engagement — all in one place.
+                        </p>
+                    </div>
+
+                    <!-- Features -->
+                    <div class="relative z-10 grid gap-4">
+                        <div v-for="feat in features" :key="feat.title" class="flex items-center gap-3.5">
+                            <div class="w-9 h-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center shrink-0 text-base">
+                                {{ feat.icon }}
+                            </div>
+                            <div>
+                                <p class="text-white font-semibold text-sm">{{ feat.title }}</p>
+                                <p class="text-primary-200/60 text-xs mt-0.5">{{ feat.desc }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel — Login Form -->
+                <div class="flex-1 p-6 sm:p-10 lg:p-12 flex flex-col justify-center bg-white">
+
+                    <!-- Mobile Logo -->
+                    <div class="lg:hidden flex flex-col items-center mb-8 text-center">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-600 to-indigo-700 flex items-center justify-center shadow-xl mb-3">
+                            <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <h1 class="text-xl font-extrabold text-gray-900">InviteFlow</h1>
+                        <p class="text-xs text-gray-500 mt-1">Personalized invitations, delivered instantly</p>
+                    </div>
+
+                    <!-- Error Banner -->
+                    <transition enter-active-class="transition duration-300 ease-out" enter-from-class="-translate-y-3 opacity-0" enter-to-class="translate-y-0 opacity-100" leave-active-class="transition duration-200 ease-in" leave-from-class="translate-y-0 opacity-100" leave-to-class="-translate-y-3 opacity-0">
+                        <div v-if="errorMessage" class="mb-5 flex items-start gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                            <svg class="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <p class="text-xs text-red-700 font-medium">{{ errorMessage }}</p>
+                            <button @click="errorMessage = null" class="ml-auto text-red-400 hover:text-red-600 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </transition>
+
+                    <!-- Heading -->
+                    <div class="mb-8 text-center lg:text-left">
+                        <h2 class="text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight">Welcome back</h2>
+                        <p class="text-gray-500 mt-1.5 text-sm">Sign in with your Google account to continue.</p>
+                    </div>
+
+                    <!-- Google Sign-in -->
+                    <a href="/auth/google" class="group flex items-center justify-center gap-3 w-full px-5 py-3.5 bg-white border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:border-primary-500 hover:bg-primary-50/50 hover:text-primary-700 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5 mb-3">
+                        <div class="w-5 h-5 shrink-0 bg-white rounded-full">
+                            <svg viewBox="0 0 24 24" class="w-full h-full">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                        </div>
+                        <span>Continue with Google</span>
+                    </a>
+
+                    <!-- Security note -->
+                    <p class="flex items-center justify-center lg:justify-start gap-1.5 text-[11px] font-medium text-gray-400 mb-8">
+                        <svg class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        Secured with OAuth 2.0 — no password required
+                    </p>
+
+                    <!-- Project highlights (replaces roles) -->
+                    <div class="border-t border-gray-100 pt-6">
+                        <p class="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-4 text-center lg:text-left">What you can do</p>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div v-for="h in highlights" :key="h.label" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-gray-50 text-center">
+                                <span class="text-xl">{{ h.icon }}</span>
+                                <p class="text-[11px] font-semibold text-gray-700 leading-tight">{{ h.label }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+const errorMessage = ref(null);
+
+onMounted(() => {
+    const err = route.query.error;
+    if (err === 'google_auth_failed') errorMessage.value = 'Google authentication failed. Please try again.';
+    if (err === 'email_not_found') errorMessage.value = 'Your Google account is not registered. Contact your administrator to get access.';
+    if (err === 'account_suspended') errorMessage.value = 'Your account has been suspended. Please contact support.';
+});
+
+const features = [
+    { icon: '🎨', title: 'Visual Document Builder', desc: 'Design personalized invitation templates with drag & drop.' },
+    { icon: '💬', title: 'WhatsApp Sharing', desc: 'Send unique invitation links instantly via WhatsApp.' },
+    { icon: '📊', title: 'Real-time Analytics', desc: 'Track link opens and recipient engagement live.' },
+];
+
+const highlights = [
+    { icon: '📄', label: 'Build Documents' },
+    { icon: '👥', label: 'Manage Recipients' },
+    { icon: '📈', label: 'View Analytics' },
+];
+</script>
