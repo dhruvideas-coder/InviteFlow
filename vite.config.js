@@ -2,8 +2,25 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
-import { resolve } from 'path';
-import fs from 'fs';
+import { resolve, join } from 'path';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+
+const PDFJS_WORKER_POLYFILL = `if(!Uint8Array.prototype.toHex){Uint8Array.prototype.toHex=function(){return Array.from(this,b=>b.toString(16).padStart(2,'0')).join('');}}
+if(!Uint8Array.fromHex){Uint8Array.fromHex=function(h){const a=new Uint8Array(h.length>>1);for(let i=0;i<a.length;i++)a[i]=parseInt(h.slice(i*2,i*2+2),16);return a;}}
+`;
+
+function copyPdfjsWorker() {
+    return {
+        name: 'copy-pdfjs-worker',
+        buildStart() {
+            const src = join(__dirname, 'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs');
+            const dest = join(__dirname, 'public/pdf.worker.mjs');
+            if (existsSync(src)) {
+                writeFileSync(dest, PDFJS_WORKER_POLYFILL + readFileSync(src, 'utf8'));
+            }
+        },
+    };
+}
 
 export default defineConfig({
     plugins: [
@@ -13,22 +30,7 @@ export default defineConfig({
         }),
         vue(),
         tailwindcss(),
-        {
-            name: 'bundle-pdfjs-worker',
-            generateBundle() {
-                // Emit the worker with a .js extension and a stable (un-hashed) filename
-                // so it is always served at /build/pdf.worker.js regardless of content hash.
-                // .js avoids Apache/Hostinger MIME-type issues with .mjs files.
-                this.emitFile({
-                    type: 'asset',
-                    fileName: 'pdf.worker.js',
-                    source: fs.readFileSync(
-                        resolve(__dirname, 'node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs'),
-                        'utf-8'
-                    ),
-                });
-            },
-        },
+        copyPdfjsWorker(),
     ],
     resolve: {
         alias: {
@@ -41,8 +43,6 @@ export default defineConfig({
         },
     },
     optimizeDeps: {
-        // pdfjs-dist uses browser DOM APIs (DOMMatrix etc.) — exclude from
-        // esbuild pre-bundling so Vite serves it directly to the browser
         exclude: ['pdfjs-dist'],
     },
 });
