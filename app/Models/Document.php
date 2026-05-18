@@ -32,7 +32,7 @@ class Document extends Model
 
     public function getFileUrlAttribute()
     {
-        return $this->file_path ? '/storage/' . $this->file_path : null;
+        return $this->file_path ? '/file/' . $this->file_path : null;
     }
 
     public function user()

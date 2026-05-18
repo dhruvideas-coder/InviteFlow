@@ -43,7 +43,7 @@ Route::get('/api/public/documents/{document}', [DocumentController::class, 'publ
 
 // Serve storage files without symlink (required on Hostinger shared hosting
 // where symlink() and exec() are disabled).
-Route::get('/storage/{path}', function (string $path) {
+Route::get('/file/{path}', function (string $path) {
     $path = ltrim($path, '/');
 
     if (str_contains($path, '..')) {
