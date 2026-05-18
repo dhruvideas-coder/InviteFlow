@@ -65,7 +65,7 @@ class DocumentController extends Controller
             'fields_count' => $doc->fields_count,
             'fields' => $doc->fields,
             'expires_at' => $doc->expires_at?->toDateString(),
-            'file_url' => Storage::disk('public')->url($doc->file_path),
+            'file_url' => $doc->file_path ? '/storage/' . $doc->file_path : null,
             'created_at' => $doc->created_at->toDateString(),
         ]);
 
@@ -114,7 +114,7 @@ class DocumentController extends Controller
         }
 
         return response()->json(array_merge($document->load('fields')->toArray(), [
-            'file_url' => Storage::disk('public')->url($document->file_path),
+            'file_url' => $document->file_path ? '/storage/' . $document->file_path : null,
         ]));
     }
 
@@ -197,7 +197,7 @@ class DocumentController extends Controller
     public function publicShow(Document $document)
     {
         return response()->json(array_merge($document->load('fields')->toArray(), [
-            'file_url' => Storage::disk('public')->url($document->file_path),
+            'file_url' => $document->file_path ? '/storage/' . $document->file_path : null,
         ]));
     }
 }

@@ -41,6 +41,24 @@ Route::middleware('auth')->group(function () {
 Route::get('/api/invitation-links/{token}', [\App\Http\Controllers\Api\InvitationLinkController::class, 'show']);
 Route::get('/api/public/documents/{document}', [DocumentController::class, 'publicShow']);
 
+// Serve storage files without symlink (required on Hostinger shared hosting
+// where symlink() and exec() are disabled).
+Route::get('/storage/{path}', function (string $path) {
+    $path = ltrim($path, '/');
+
+    if (str_contains($path, '..')) {
+        abort(404);
+    }
+
+    $fullPath = storage_path('app/public/' . $path);
+
+    if (!file_exists($fullPath)) {
+        abort(404);
+    }
+
+    return response()->file($fullPath);
+})->where('path', '.*');
+
 // Catch-all: serve the Vue SPA
 Route::get('/{any}', function () {
     return view('app');
