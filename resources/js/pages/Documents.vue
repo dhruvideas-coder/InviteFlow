@@ -4,16 +4,16 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 tracking-tight">{{ lang.t('documents') }}</h1>
-                <p class="text-sm text-gray-500 mt-1">Manage bulk document requests and tracking.</p>
+                <p class="text-sm text-gray-500 mt-1">{{ auth.isMember ? 'View documents shared with you.' : 'Manage bulk document requests and tracking.' }}</p>
             </div>
-            <RouterLink to="/documents/create" class="btn btn-primary px-6 py-2.5 shadow-lg shadow-primary-200 flex items-center gap-2">
+            <RouterLink v-if="!auth.isMember" to="/documents/create" class="btn btn-primary px-6 py-2.5 shadow-lg shadow-primary-200 flex items-center gap-2">
                 <Plus class="w-4 h-4 stroke-[3px]" />
                 <span>{{ lang.t('new_document') }}</span>
             </RouterLink>
         </div>
 
         <!-- Summary Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="card p-5 border-l-4 border-primary-500">
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ lang.t('total_documents') }}</p>
                 <h3 class="text-2xl font-black text-gray-900">{{ pagination.total }}</h3>
@@ -96,12 +96,26 @@
                         </td>
                         <td>
                             <div class="flex items-center justify-end gap-2">
-                                <RouterLink v-if="doc.status === 'draft'" :to="`/documents/${doc.id}/edit`" class="text-primary-600 hover:text-primary-700 font-bold text-[10px] uppercase tracking-wider">{{ lang.t('edit') }}</RouterLink>
-                                <span v-if="doc.status === 'draft'" class="text-gray-100">|</span>
-                                <button @click="openPreview(doc)" class="text-primary-600 hover:text-primary-700 font-bold text-[10px] uppercase tracking-wider">{{ lang.t('view') }}</button>
-                                <button @click="confirmDelete(doc)" class="p-1 text-gray-300 hover:text-red-500 transition-colors ml-1">
-                                    <Trash2 class="w-3.5 h-3.5" />
-                                </button>
+                                <!-- Admin actions -->
+                                <template v-if="!auth.isMember">
+                                    <RouterLink v-if="doc.status === 'draft'" :to="`/documents/${doc.id}/edit`" class="text-primary-600 hover:text-primary-700 font-bold text-[10px] uppercase tracking-wider">{{ lang.t('edit') }}</RouterLink>
+                                    <span v-if="doc.status === 'draft'" class="text-gray-100">|</span>
+                                    <button @click="openPreview(doc)" class="text-primary-600 hover:text-primary-700 font-bold text-[10px] uppercase tracking-wider">{{ lang.t('view') }}</button>
+                                    <button @click="confirmDelete(doc)" class="p-1 text-gray-300 hover:text-red-500 transition-colors ml-1">
+                                        <Trash2 class="w-3.5 h-3.5" />
+                                    </button>
+                                </template>
+                                <!-- Member actions -->
+                                <template v-else>
+                                    <button @click="openPreview(doc)" class="btn btn-secondary py-1 px-3 text-[11px]">
+                                        <Eye class="w-3.5 h-3.5 shrink-0" />
+                                        {{ lang.t('view_document') }}
+                                    </button>
+                                    <button @click="openRecipientsModal(doc)" class="btn btn-secondary py-1 px-3 text-[11px]">
+                                        <Users class="w-3.5 h-3.5 shrink-0" />
+                                        {{ lang.t('recipients') }}
+                                    </button>
+                                </template>
                             </div>
                         </td>
                     </tr>
@@ -112,8 +126,8 @@
                                     <Mail class="w-8 h-8 text-gray-300" />
                                 </div>
                                 <h3 class="font-semibold text-gray-800">{{ lang.t('no_documents_found') }}</h3>
-                                <p class="text-sm text-gray-400">{{ lang.t('create_first_document') }}</p>
-                                <RouterLink to="/documents/create" class="btn btn-primary mt-4">
+                                <p class="text-sm text-gray-400">{{ auth.isMember ? 'No documents have been shared with you yet.' : lang.t('create_first_document') }}</p>
+                                <RouterLink v-if="!auth.isMember" to="/documents/create" class="btn btn-primary mt-4">
                                     {{ lang.t('create_document') }}
                                 </RouterLink>
                             </div>
@@ -192,6 +206,9 @@
                 </div>
             </div>
         </Transition>
+
+        <!-- Document Recipients Modal (member) -->
+        <DocumentRecipientsModal v-model="showRecipientsModal" :document="recipientsDoc" />
 
         <!-- Preview Modal -->
         <Transition name="modal">
@@ -285,12 +302,24 @@
 <script setup>
 import { ref, onMounted, computed, watchEffect } from 'vue';
 import { RouterLink } from 'vue-router';
-import { Plus, Search, Mail, Trash2, Loader2, X, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { Plus, Search, Mail, Trash2, Loader2, X, ChevronLeft, ChevronRight, Eye, Users } from 'lucide-vue-next';
 import axios from 'axios';
 import PdfCanvas from '@/components/PdfCanvas.vue';
+import DocumentRecipientsModal from '@/components/DocumentRecipientsModal.vue';
 import { useLanguageStore } from '@/stores/language';
+import { useAuthStore } from '@/stores/auth';
 
 const lang = useLanguageStore();
+const auth = useAuthStore();
+
+// Document Recipients Modal
+const showRecipientsModal = ref(false);
+const recipientsDoc       = ref(null);
+
+function openRecipientsModal(doc) {
+    recipientsDoc.value       = doc;
+    showRecipientsModal.value = true;
+}
 
 const documents = ref([]);
 const loading = ref(true);

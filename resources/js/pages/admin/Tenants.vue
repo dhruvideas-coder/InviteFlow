@@ -14,7 +14,7 @@
         </div>
 
         <!-- Stats -->
-        <div class="grid grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div v-for="s in stats" :key="s.label" class="stat-card text-center">
                 <p class="text-2xl font-bold text-gray-900">{{ s.value }}</p>
                 <p class="text-xs text-gray-500 mt-1">{{ s.label }}</p>

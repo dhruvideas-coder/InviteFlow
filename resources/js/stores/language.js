@@ -108,6 +108,7 @@ export const useLanguageStore = defineStore('language', () => {
             delete_document: 'Delete Document',
             action_cannot_undone: 'This action cannot be undone',
             view: 'View',
+            view_document: 'View Document',
             create: 'Create',
             document_name_desc: 'Give your document a clear title for easy tracking.',
             optional: 'optional',
@@ -259,7 +260,15 @@ export const useLanguageStore = defineStore('language', () => {
             confirm_delete_user: 'Are you sure you want to delete {name}? This cannot be undone.',
             subscription_plans: 'Subscription Plans',
             tenant_management: 'Tenant Management',
-            none: 'None'
+            none: 'None',
+            personalized_links: 'Personalized Links',
+            no_recipients_for_doc: 'No recipients for this document yet',
+            select_recipients_hint: 'Click "Select Recipients" to add recipients from your list.',
+            select_recipients: 'Select Recipients',
+            in_document: 'In Document',
+            available: 'available',
+            add_to_document: 'Add {count} to Document',
+            send_whatsapp_to_link: 'Send a WhatsApp invitation to link recipients to this document.'
         },
         gu: {
             dashboard: 'ડેશબોર્ડ',
@@ -351,6 +360,7 @@ export const useLanguageStore = defineStore('language', () => {
             delete_document: 'દસ્તાવેજ કાઢી નાખો',
             action_cannot_undone: 'આ ક્રિયા પાછી ખેંચી શકાતી નથી',
             view: 'જુઓ',
+            view_document: 'દસ્તાવેજ જુઓ',
             create: 'બનાવો',
             document_name_desc: 'સરળ ટ્રેકિંગ માટે તમારા દસ્તાવેજને સ્પષ્ટ શીર્ષક આપો.',
             optional: 'વૈકલ્પિક',
@@ -502,7 +512,15 @@ export const useLanguageStore = defineStore('language', () => {
             confirm_delete_user: 'Shu tame {name} ne kadhi nakva mango chho? A kriya pachhi khenchi shakati nathi.',
             subscription_plans: 'Subscription yojanaao',
             tenant_management: 'Tenant vyavasthapan',
-            none: 'Koi nahi'
+            none: 'Koi nahi',
+            personalized_links: 'વ્યક્તિગત લિંક્સ',
+            no_recipients_for_doc: 'આ દસ્તાવેજ માટે હજી કોઈ લેનારા નથી',
+            select_recipients_hint: '"લેનારા પસંદ કરો" ક્લિક કરી તમારી યાદીમાંથી ઉમેરો.',
+            select_recipients: 'લેનારા પસંદ કરો',
+            in_document: 'દસ્તાવેજમાં',
+            available: 'ઉપલબ્ધ',
+            add_to_document: '{count} દસ્તાવેજમાં ઉમેરો',
+            send_whatsapp_to_link: 'લેનારાઓને આ દસ્તાવેજ સાથে જોડવા WhatsApp આમંત્રણ મોકલો.'
         }
     });
 

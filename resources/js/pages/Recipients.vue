@@ -32,7 +32,7 @@
         </div>
 
         <!-- Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div class="stat-card flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -75,16 +75,18 @@
                 </svg>
                 <input v-model="search" type="text" class="input pl-10" :placeholder="lang.t('search_recipients')" @input="onSearchInput" />
             </div>
-            <select v-model="villageFilter" class="select sm:w-44" @change="fetchRecipients(1)">
+            <div class="flex gap-3 sm:contents">
+            <select v-model="villageFilter" class="select flex-1 sm:w-44" @change="fetchRecipients(1)">
                 <option value="">{{ lang.t('all_villages') }}</option>
                 <option v-for="v in villages" :key="v" :value="v">{{ v }}</option>
             </select>
-            <select v-model="perPage" class="select sm:w-28" @change="fetchRecipients(1)">
+            <select v-model="perPage" class="select w-28 shrink-0" @change="fetchRecipients(1)">
                 <option :value="10">10 / Page</option>
                 <option :value="25">25 / Page</option>
                 <option :value="50">50 / Page</option>
                 <option :value="100">100 / Page</option>
             </select>
+            </div>
         </div>
 
         <!-- Table -->
@@ -99,6 +101,7 @@
                         <th v-if="lang.currentLocale === 'en'">Name (Gujarati)</th>
                         <th>{{ lang.t('phone') }}</th>
                         <th>{{ lang.t('village') }}</th>
+                        <th v-if="lang.currentLocale === 'en'">Village (Gujarati)</th>
                         <th>{{ lang.t('status') }}</th>
                         <th></th>
                     </tr>
@@ -119,6 +122,7 @@
                         <td v-if="lang.currentLocale === 'en'" class="text-gray-700" style="font-family: serif;">{{ r.name_gu }}</td>
                         <td class="text-gray-600 font-mono text-xs">{{ formatMobile(r.mobile) }}</td>
                         <td><span class="tag">{{ lang.currentLocale === 'gu' ? r.village_gu || r.village_en : r.village_en }}</span></td>
+                        <td v-if="lang.currentLocale === 'en'" class="text-gray-700" style="font-family: serif;">{{ r.village_gu }}</td>
                         <td>
                             <span :class="['badge text-xs', r.sent ? 'badge-green' : 'badge-gray']">
                                 {{ r.sent ? lang.t('sent') : lang.t('pending') }}
@@ -126,25 +130,7 @@
                         </td>
                         <td>
                             <div class="flex items-center gap-1 justify-end">
-                                <button 
-                                    @click="openWhatsAppModal(r)"
-                                    class="btn btn-ghost btn-sm text-green-600 hover:text-green-700 hover:bg-green-50" 
-                                    title="Send WhatsApp"
-                                >
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                                    </svg>
-                                </button>
-                                <button 
-                                    @click="openLinksModal(r)"
-                                    class="btn btn-ghost btn-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50" 
-                                    title="View Links"
-                                >
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.826a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                                    </svg>
-                                </button>
-                                <button 
+                                <button
                                     @click="editRecipient(r)"
                                     class="btn btn-ghost btn-sm" title="Edit"
                                 >
@@ -637,6 +623,178 @@
             </Transition>
         </Teleport>
 
+        <!-- Document Preview Modal -->
+        <Teleport to="body">
+            <Transition name="modal">
+                <div v-if="showDocPreviewModal" class="modal-overlay" @click.self="showDocPreviewModal = false">
+                    <div class="modal max-w-3xl w-[96%] max-h-[95vh] flex flex-col p-0 overflow-hidden">
+
+                        <!-- Header -->
+                        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center shrink-0">
+                                    <svg class="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900">Document Preview</h3>
+                                    <p class="text-xs text-gray-500">
+                                        {{ lang.currentLocale === 'gu' ? selectedRecipient?.name_gu || selectedRecipient?.name_en : selectedRecipient?.name_en }}
+                                    </p>
+                                </div>
+                            </div>
+                            <button @click="showDocPreviewModal = false" class="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="flex-1 overflow-y-auto p-5 space-y-5">
+
+                            <!-- Document Selector -->
+                            <div v-if="loadingDocs" class="flex items-center gap-2 text-xs text-gray-400 p-3 bg-gray-50 rounded-xl">
+                                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                                {{ lang.t('loading') }}...
+                            </div>
+                            <div v-else-if="docs.length === 0" class="p-4 bg-red-50 rounded-xl text-center border border-red-100">
+                                <p class="text-xs text-red-500">{{ lang.t('no_templates_found') }}</p>
+                            </div>
+                            <div v-else class="relative">
+                                <select v-model="previewDocSelectedId" class="select w-full pl-11 h-11 bg-white appearance-none">
+                                    <option v-for="doc in docs" :key="doc.id" :value="doc.id">
+                                        {{ doc.name }}
+                                    </option>
+                                </select>
+                                <div class="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    <div :class="['w-6 h-6 rounded-md flex items-center justify-center text-white', docGradient(previewDocSelectedId || 0)]">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <!-- A4 Document Preview -->
+                            <div v-if="previewDoc" class="space-y-4">
+                                <!-- Measurement container (full width, capped at 600px) -->
+                                <div ref="previewDocContainerRef" class="w-full max-w-[600px] mx-auto">
+                                    <!-- A4 canvas wrapper -->
+                                    <div
+                                        class="relative overflow-hidden bg-white shadow-xl border border-gray-200 rounded-xl mx-auto"
+                                        :style="{ width: previewDocW + 'px', height: previewDocH + 'px' }"
+                                    >
+                                        <template v-if="isImage(previewDoc)">
+                                            <img
+                                                :src="previewDoc.file_url"
+                                                class="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
+                                                @load="onPreviewDocImageLoad"
+                                            />
+                                        </template>
+                                        <template v-else>
+                                            <PdfCanvas
+                                                :src="previewDoc.file_url"
+                                                :width="previewDocW"
+                                                :page="previewDocPage"
+                                                class="pointer-events-none select-none"
+                                                @rendered="onPreviewDocPdfRendered"
+                                                @total-pages="n => previewDocTotalPages = n"
+                                            />
+                                        </template>
+
+                                        <!-- Name / Village field overlays -->
+                                        <div
+                                            v-for="field in previewDocFilteredFields"
+                                            :key="field.id"
+                                            class="absolute flex items-center justify-center text-center pointer-events-none select-none"
+                                            :style="{
+                                                left:   (field.x_percent     / 100 * previewDocW) + 'px',
+                                                top:    (field.y_percent     / 100 * previewDocH) + 'px',
+                                                width:  (field.width_percent / 100 * previewDocW) + 'px',
+                                                height: (field.height_percent / 100 * previewDocH) + 'px',
+                                                border: `1px dashed ${field.color || '#3b82f6'}60`,
+                                                backgroundColor: (field.color || '#3b82f6') + '10',
+                                            }"
+                                        >
+                                            <span
+                                                class="font-bold px-1 truncate w-full text-center"
+                                                :style="{
+                                                    fontSize:   Math.max(8, (field.height_percent / 100 * previewDocH) * 0.55) + 'px',
+                                                    fontFamily: previewDoc.language === 'en' ? 'sans-serif' : 'serif',
+                                                    color:      field.color || '#111827',
+                                                }"
+                                            >
+                                                {{ getPreviewDocFieldValue(field) }}
+                                            </span>
+                                        </div>
+
+                                        <!-- Live badge -->
+                                        <div class="absolute top-3 right-3 z-10">
+                                            <div class="bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/50 text-[10px] font-bold text-violet-600 shadow-sm flex items-center gap-1.5">
+                                                <div class="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse"></div>
+                                                Preview
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Page Navigation -->
+                                <div v-if="!isImage(previewDoc) && previewDocTotalPages > 1" class="flex items-center justify-center gap-3">
+                                    <button
+                                        @click="previewDocPage > 1 && previewDocPage--"
+                                        :disabled="previewDocPage === 1"
+                                        class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-sm font-medium text-gray-700 shadow-sm"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                        Previous
+                                    </button>
+                                    <span class="text-sm font-bold text-gray-700 bg-gray-100 px-5 py-2 rounded-xl min-w-[110px] text-center select-none">
+                                        Page {{ previewDocPage }} / {{ previewDocTotalPages }}
+                                    </span>
+                                    <button
+                                        @click="previewDocPage < previewDocTotalPages && previewDocPage++"
+                                        :disabled="previewDocPage === previewDocTotalPages"
+                                        class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-sm font-medium text-gray-700 shadow-sm"
+                                    >
+                                        Next
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <!-- Single-page note -->
+                                <p v-else-if="!isImage(previewDoc) && previewDocTotalPages === 1" class="text-center text-xs text-gray-400">
+                                    Single page document
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between shrink-0">
+                            <p class="text-xs text-gray-500 truncate max-w-[60%]">
+                                <span v-if="previewDoc">{{ previewDoc.name }}</span>
+                            </p>
+                            <button @click="showDocPreviewModal = false" class="btn btn-secondary btn-sm">{{ lang.t('close') }}</button>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
         <!-- CSV/Excel Import Modal -->
         <Teleport to="body">
             <Transition name="modal">
@@ -686,6 +844,7 @@
                                                 </th>
                                                 <th class="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{{ lang.t('display_name') }}</th>
                                                 <th class="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{{ lang.t('mobile_phone') }}</th>
+                                                <th class="p-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{{ lang.t('village') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-50">
@@ -695,6 +854,7 @@
                                                 </td>
                                                 <td class="p-3 text-sm text-gray-900 font-medium">{{ row.name }}</td>
                                                 <td class="p-3 text-sm text-gray-600 font-mono">{{ formatMobile(row.mobile) }}</td>
+                                                <td class="p-3 text-sm text-gray-500">{{ row.village || '—' }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -704,8 +864,15 @@
 
                         <!-- Footer -->
                         <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-                            <button @click="importedData = []; importError = ''" v-if="importedData.length" class="btn btn-secondary btn-sm">{{ lang.t('clear') }}</button>
-                            <div v-else></div>
+                            <div class="flex items-center gap-2">
+                                <button @click="importedData = []; importError = ''" v-if="importedData.length" class="btn btn-secondary btn-sm">{{ lang.t('clear') }}</button>
+                                <a href="/recipients_sample.xlsx" download class="btn btn-secondary btn-sm flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    Sample File
+                                </a>
+                            </div>
                             <div class="flex gap-2">
                                 <button @click="showCsvModal = false" class="btn btn-secondary btn-sm">{{ lang.t('cancel') }}</button>
                                 <button 
@@ -718,7 +885,7 @@
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
-                                    {{ lang.t('import_recipients_count', { count: selectedImportRows.length }) }}
+                                    {{ importingCsv ? importStatus : lang.t('import_recipients_count', { count: selectedImportRows.length }) }}
                                 </button>
                             </div>
                         </div>
@@ -730,7 +897,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { RouterLink } from 'vue-router';
 import axios from 'axios';
 import PdfCanvas from '@/components/PdfCanvas.vue';
@@ -774,6 +941,7 @@ const importedData = ref([]);
 const importError = ref('');
 const selectedImportRows = ref([]);
 const importingCsv = ref(false);
+const importStatus = ref('');
 const fileInput = ref(null);
 
 // Contact Picker API
@@ -887,44 +1055,39 @@ const validateAndProcessData = (data) => {
     const keys = Object.keys(firstRow);
     const nameKey = keys.find(k => k.trim().toLowerCase() === 'display name');
     const phoneKey = keys.find(k => k.trim().toLowerCase() === 'mobile phone');
-    
+    const villageKey = keys.find(k => k.trim().toLowerCase() === 'village');
+
     if (!nameKey || !phoneKey) {
         importError.value = "Required columns 'Display Name' and 'Mobile Phone' not found.";
         return;
     }
-    
+
     importedData.value = data.map((row, index) => {
         let name = String(row[nameKey] || '').trim();
         let mobile = String(row[phoneKey] || '').trim();
-        
+        let village = villageKey ? String(row[villageKey] || '').trim() : '';
+
         // Clean mobile: remove all non-digit characters except +
         let cleanedMobile = mobile.replace(/[^\d+]/g, '');
-        
-        // Validation logic
-        // 1. Check if name or mobile is empty
+
         if (!name || !cleanedMobile) return null;
-        
-        // 2. Check if mobile (digits only) is below 9 numbers
+
         const digitsOnly = cleanedMobile.replace(/\D/g, '');
         if (digitsOnly.length < 9) return null;
-        
-        // 3. Format mobile with country code if missing
-        // If it starts with +, keep as is. 
-        // If it's 10 digits and no +, assume India (+91)
+
         if (!cleanedMobile.startsWith('+')) {
             if (digitsOnly.length === 10) {
                 cleanedMobile = '+91' + digitsOnly;
             } else {
-                // For other lengths, we just keep it as is but it might be risky
-                // But the user said "store with country code", so we could prefix + if missing
                 cleanedMobile = '+' + digitsOnly;
             }
         }
-        
+
         return {
             id: index,
             name: name,
             mobile: cleanedMobile,
+            village: village,
         };
     }).filter(r => r !== null);
     
@@ -938,17 +1101,30 @@ const toggleAllImport = (e) => {
 async function saveImportedRecipients() {
     const toAdd = importedData.value.filter(r => selectedImportRows.value.includes(r.id));
     if (!toAdd.length) return;
-    
+
     importingCsv.value = true;
+    importStatus.value = 'Translating to Gujarati…';
     try {
-        // Bulk insert would be better, but keeping it consistent with Promise.allSettled
+        // Translate unique names and villages to Gujarati in parallel
+        const uniqueNames = [...new Set(toAdd.map(r => r.name).filter(Boolean))];
+        const uniqueVillages = [...new Set(toAdd.map(r => r.village).filter(Boolean))];
+
+        const [nameResults, villageResults] = await Promise.all([
+            Promise.all(uniqueNames.map(t => translateToGujarati(t).then(gu => [t, gu]))),
+            Promise.all(uniqueVillages.map(t => translateToGujarati(t).then(gu => [t, gu]))),
+        ]);
+
+        const nameMap = Object.fromEntries(nameResults);
+        const villageMap = Object.fromEntries(villageResults);
+
+        importStatus.value = `Saving ${toAdd.length} recipients…`;
         const results = await Promise.allSettled(
             toAdd.map(r => axios.post('/api/recipients', {
                 name_en: r.name,
-                name_gu: '',
+                name_gu: nameMap[r.name] || '',
                 mobile: String(r.mobile),
-                village_en: '',
-                village_gu: '',
+                village_en: r.village || '',
+                village_gu: villageMap[r.village] || '',
             }))
         );
         
@@ -964,6 +1140,72 @@ async function saveImportedRecipients() {
         importingCsv.value = false;
     }
 }
+
+// Document Preview Modal State
+const showDocPreviewModal = ref(false);
+const previewDocSelectedId = ref(null);
+const previewDocPage = ref(1);
+const previewDocTotalPages = ref(1);
+const previewDocContainerRef = ref(null);
+const previewDocW = ref(500);
+const previewDocAspectRatio = ref(1.4142); // A4 default
+const previewDocH = computed(() => Math.round(previewDocW.value * previewDocAspectRatio.value));
+
+const previewDoc = computed(() => docs.value.find(d => d.id === previewDocSelectedId.value));
+
+const previewDocFilteredFields = computed(() => {
+    if (!previewDoc.value?.fields) return [];
+    return previewDoc.value.fields.filter(f => (f.page_number || 1) === previewDocPage.value);
+});
+
+function getPreviewDocFieldValue(field) {
+    if (!selectedRecipient.value || !previewDoc.value) return '';
+    const docLang = previewDoc.value.language || 'en';
+    if (field.field_type === 'village') {
+        return docLang === 'gu' ? selectedRecipient.value.village_gu : selectedRecipient.value.village_en;
+    }
+    return docLang === 'gu' ? selectedRecipient.value.name_gu : selectedRecipient.value.name_en;
+}
+
+function onPreviewDocPdfRendered({ width, height }) {
+    previewDocAspectRatio.value = height / width;
+}
+
+function onPreviewDocImageLoad(e) {
+    const { naturalWidth, naturalHeight } = e.target;
+    if (naturalWidth && naturalHeight) previewDocAspectRatio.value = naturalHeight / naturalWidth;
+}
+
+function openDocPreviewModal(recipient) {
+    selectedRecipient.value = recipient;
+    previewDocPage.value = 1;
+    previewDocTotalPages.value = 1;
+    previewDocAspectRatio.value = 1.4142;
+    if (!previewDocSelectedId.value && docs.value.length > 0) {
+        previewDocSelectedId.value = docs.value[0].id;
+    }
+    showDocPreviewModal.value = true;
+    if (docs.value.length === 0) fetchDocuments();
+}
+
+watch(previewDocSelectedId, () => {
+    previewDocPage.value = 1;
+    previewDocTotalPages.value = 1;
+    previewDocAspectRatio.value = 1.4142;
+});
+
+watch(showDocPreviewModal, (val) => {
+    if (!val) return;
+    setTimeout(() => {
+        const el = previewDocContainerRef.value;
+        if (!el) return;
+        previewDocW.value = el.clientWidth || 500;
+        const ro = new ResizeObserver(([entry]) => {
+            previewDocW.value = entry.contentRect.width || 500;
+        });
+        ro.observe(el);
+    }, 100);
+});
 
 // WhatsApp Modal State
 const showWhatsAppModal = ref(false);
@@ -1029,26 +1271,34 @@ const autoConverting = ref(false);
 const autoConvertingVillage = ref(false);
 let autoConvertTimer = null;
 let autoConvertVillageTimer = null;
+let suppressAutoConvert = false;
 
-async function autoConvert(type = 'name') {
-    const isName = type === 'name';
-    const text = isName ? (form.value.name_en || '').trim() : (form.value.village_en || '').trim();
-    if (!text) return;
-    
-    if (isName) autoConverting.value = true;
-    else autoConvertingVillage.value = true;
-    
+async function translateToGujarati(text) {
+    if (!text) return '';
     try {
         const res = await fetch(
             `https://inputtools.google.com/request?text=${encodeURIComponent(text)}&itc=gu-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8`
         );
         const data = await res.json();
-        if (data[0] === 'SUCCESS' && data[1]?.[0]?.[1]?.[0]) {
-            if (isName) form.value.name_gu = data[1][0][1][0];
-            else form.value.village_gu = data[1][0][1][0];
+        if (data[0] === 'SUCCESS' && data[1]?.[0]?.[1]?.[0]) return data[1][0][1][0];
+    } catch {}
+    return '';
+}
+
+async function autoConvert(type = 'name') {
+    const isName = type === 'name';
+    const text = isName ? (form.value.name_en || '').trim() : (form.value.village_en || '').trim();
+    if (!text) return;
+
+    if (isName) autoConverting.value = true;
+    else autoConvertingVillage.value = true;
+
+    try {
+        const result = await translateToGujarati(text);
+        if (result) {
+            if (isName) form.value.name_gu = result;
+            else form.value.village_gu = result;
         }
-    } catch (err) {
-        console.error('Auto convert failed:', err);
     } finally {
         if (isName) autoConverting.value = false;
         else autoConvertingVillage.value = false;
@@ -1057,12 +1307,14 @@ async function autoConvert(type = 'name') {
 
 watch(() => form.value.name_en, (val) => {
     clearTimeout(autoConvertTimer);
+    if (suppressAutoConvert) return;
     if (!val || !val.trim()) { form.value.name_gu = ''; return; }
     autoConvertTimer = setTimeout(() => autoConvert('name'), 700);
 });
 
 watch(() => form.value.village_en, (val) => {
     clearTimeout(autoConvertVillageTimer);
+    if (suppressAutoConvert) return;
     if (!val || !val.trim()) { form.value.village_gu = ''; return; }
     autoConvertVillageTimer = setTimeout(() => autoConvert('village'), 700);
 });
@@ -1163,14 +1415,16 @@ function openAddModal() {
 function editRecipient(recipient) {
     isEditing.value = true;
     editId.value = recipient.id;
-    form.value = { 
-        name_en: recipient.name_en, 
-        name_gu: recipient.name_gu, 
-        mobile: recipient.mobile, 
+    suppressAutoConvert = true;
+    form.value = {
+        name_en: recipient.name_en,
+        name_gu: recipient.name_gu,
+        mobile: recipient.mobile,
         village_en: recipient.village_en,
         village_gu: recipient.village_gu
     };
     showAddModal.value = true;
+    nextTick(() => { suppressAutoConvert = false; });
 }
 
 function toggleAll(e) {

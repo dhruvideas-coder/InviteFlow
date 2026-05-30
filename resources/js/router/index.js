@@ -15,7 +15,7 @@ const routes = [
         children: [
             { path: '', redirect: '/dashboard' },
             { path: 'dashboard', name: 'dashboard', component: () => import('@/pages/Dashboard.vue') },
-            { path: 'documents', name: 'documents', component: () => import('@/pages/Documents.vue'), meta: { roles: ['admin', 'super_admin'] } },
+            { path: 'documents', name: 'documents', component: () => import('@/pages/Documents.vue') },
             { path: 'documents/create', name: 'documents.create', component: () => import('@/pages/DocumentBuilder.vue'), meta: { roles: ['admin', 'super_admin'] } },
             { path: 'documents/:id/edit', name: 'documents.edit', component: () => import('@/pages/DocumentBuilder.vue'), meta: { roles: ['admin', 'super_admin'] } },
 

@@ -10,31 +10,49 @@ class RecipientController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 10);
-        $search = $request->input('search');
-        $village = $request->input('village');
+        $perPage    = $request->input('per_page', 10);
+        $search     = $request->input('search');
+        $village    = $request->input('village');
+        $documentId = $request->input('document_id');
 
-        $paginated = Recipient::with('invitationLinks.document')
-            ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name_en', 'like', "%{$search}%")
+        $baseQuery = Recipient::with('invitationLinks.document')
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($inner) use ($search) {
+                    $inner->where('name_en', 'like', "%{$search}%")
                         ->orWhere('name_gu', 'like', "%{$search}%")
                         ->orWhere('mobile', 'like', "%{$search}%")
                         ->orWhere('village_en', 'like', "%{$search}%")
                         ->orWhere('village_gu', 'like', "%{$search}%");
                 });
             })
-            ->when($village, function ($query, $village) {
-                $query->where('village_en', $village);
+            ->when($village, function ($q) use ($village) {
+                $q->where('village_en', $village);
             })
-            ->latest()
-            ->paginate($perPage);
+            ->when($documentId, function ($q) use ($documentId) {
+                $q->whereHas('invitationLinks', function ($l) use ($documentId) {
+                    $l->where('document_id', $documentId);
+                });
+            });
+
+        $paginated = $baseQuery->latest()->paginate($perPage);
+
+        $totalSent    = Recipient::when($documentId, function ($q) use ($documentId) {
+            $q->whereHas('invitationLinks', function ($l) use ($documentId) {
+                $l->where('document_id', $documentId);
+            });
+        })->where('sent', true)->count();
+
+        $totalPending = Recipient::when($documentId, function ($q) use ($documentId) {
+            $q->whereHas('invitationLinks', function ($l) use ($documentId) {
+                $l->where('document_id', $documentId);
+            });
+        })->where('sent', false)->count();
 
         return response()->json(array_merge($paginated->toArray(), [
             'stats' => [
-                'total_sent' => Recipient::where('sent', true)->count(),
-                'total_pending' => Recipient::where('sent', false)->count(),
-            ]
+                'total_sent'    => $totalSent,
+                'total_pending' => $totalPending,
+            ],
         ]));
     }
 

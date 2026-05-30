@@ -218,7 +218,7 @@ const roleBadge = computed(() => {
 
 const allNavItems = computed(() => [
     { label: lang.t('dashboard'), to: '/dashboard', icon: LayoutDashboard },
-    { label: lang.t('documents'), to: '/documents', icon: FileText, adminOnly: true },
+    { label: lang.t('documents'), to: '/documents', icon: FileText },
     { label: lang.t('recipients'), to: '/recipients', icon: Users },
     { label: lang.t('analytics'), to: '/analytics', icon: BarChart2 },
     { divider: true },
