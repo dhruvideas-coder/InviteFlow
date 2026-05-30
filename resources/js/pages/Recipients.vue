@@ -91,17 +91,17 @@
 
         <!-- Table -->
         <div class="table-wrap">
-            <table class="table min-w-[700px]">
+            <table class="table min-w-[500px] sm:min-w-[700px]">
                 <thead>
                     <tr>
                         <th>
                             <input type="checkbox" class="rounded" @change="toggleAll" />
                         </th>
                         <th>{{ lang.t('name') }}</th>
-                        <th v-if="lang.currentLocale === 'en'">Name (Gujarati)</th>
+                        <th v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell">Name (Gujarati)</th>
                         <th>{{ lang.t('phone') }}</th>
                         <th>{{ lang.t('village') }}</th>
-                        <th v-if="lang.currentLocale === 'en'">Village (Gujarati)</th>
+                        <th v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell">Village (Gujarati)</th>
                         <th>{{ lang.t('status') }}</th>
                         <th></th>
                     </tr>
@@ -119,10 +119,10 @@
                                 <span class="font-medium text-gray-900">{{ lang.currentLocale === 'gu' ? r.name_gu || r.name_en : r.name_en }}</span>
                             </div>
                         </td>
-                        <td v-if="lang.currentLocale === 'en'" class="text-gray-700" style="font-family: serif;">{{ r.name_gu }}</td>
+                        <td v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell text-gray-700" style="font-family: serif;">{{ r.name_gu }}</td>
                         <td class="text-gray-600 font-mono text-xs">{{ formatMobile(r.mobile) }}</td>
                         <td><span class="tag">{{ lang.currentLocale === 'gu' ? r.village_gu || r.village_en : r.village_en }}</span></td>
-                        <td v-if="lang.currentLocale === 'en'" class="text-gray-700" style="font-family: serif;">{{ r.village_gu }}</td>
+                        <td v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell text-gray-700" style="font-family: serif;">{{ r.village_gu }}</td>
                         <td>
                             <span :class="['badge text-xs', r.sent ? 'badge-green' : 'badge-gray']">
                                 {{ r.sent ? lang.t('sent') : lang.t('pending') }}

@@ -60,6 +60,7 @@
                 <thead>
                     <tr>
                         <th>{{ lang.t('title') }}</th>
+                        <th v-if="auth.isSuperAdmin" class="hidden lg:table-cell">{{ lang.t('admin') }}</th>
                         <th>{{ lang.t('status') }}</th>
                         <th>{{ lang.t('progress') }}</th>
                         <th class="hidden md:table-cell">{{ lang.t('date') }}</th>
@@ -68,7 +69,7 @@
                 </thead>
                 <tbody v-if="loading">
                     <tr v-for="i in 5" :key="i">
-                        <td colspan="5" class="py-6 text-center">
+                        <td :colspan="auth.isSuperAdmin ? 6 : 5" class="py-6 text-center">
                             <div class="animate-pulse flex items-center justify-center gap-4">
                                 <div class="h-4 bg-gray-100 rounded w-1/3"></div>
                                 <div class="h-4 bg-gray-100 rounded w-1/4"></div>
@@ -83,6 +84,9 @@
                                 <span class="font-semibold text-gray-900 line-clamp-1">{{ doc.name }}</span>
                                 <span class="text-[10px] text-gray-500 mt-0.5 line-clamp-1">{{ doc.description || lang.t('no_description') }}</span>
                             </div>
+                        </td>
+                        <td v-if="auth.isSuperAdmin" class="hidden lg:table-cell">
+                            <span class="text-xs font-medium text-gray-700">{{ doc.created_by || '—' }}</span>
                         </td>
                         <td>
                             <span :class="['badge', statusClass(doc.status)]">{{ lang.t(doc.status.toLowerCase()) }}</span>
@@ -103,6 +107,11 @@
                                     <RouterLink v-if="doc.status === 'draft'" :to="`/documents/${doc.id}/edit`" class="text-primary-600 hover:text-primary-700 font-bold text-[10px] uppercase tracking-wider">{{ lang.t('edit') }}</RouterLink>
                                     <span v-if="doc.status === 'draft'" class="text-gray-100">|</span>
                                     <button @click="openPreview(doc)" class="text-primary-600 hover:text-primary-700 font-bold text-[10px] uppercase tracking-wider">{{ lang.t('view') }}</button>
+                                    <span class="text-gray-100">|</span>
+                                    <button @click="openRecipientsModal(doc)" class="text-primary-600 hover:text-primary-700 font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">
+                                        <Users class="w-3 h-3 shrink-0" />
+                                        {{ lang.t('recipients') }}
+                                    </button>
                                     <button @click="confirmDelete(doc)" class="p-1 text-gray-300 hover:text-red-500 transition-colors ml-1">
                                         <Trash2 class="w-3.5 h-3.5" />
                                     </button>
@@ -122,7 +131,7 @@
                         </td>
                     </tr>
                     <tr v-if="!documents.length">
-                        <td colspan="5" class="text-center py-20">
+                        <td :colspan="auth.isSuperAdmin ? 6 : 5" class="text-center py-20">
                             <div class="flex flex-col items-center gap-2">
                                 <div class="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mb-2">
                                     <Mail class="w-8 h-8 text-gray-300" />

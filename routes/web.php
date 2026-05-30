@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\RecipientController;
@@ -32,6 +33,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/api/recipients/{recipient}', [RecipientController::class, 'update']);
     Route::delete('/api/recipients/{recipient}', [RecipientController::class, 'destroy']);
     Route::post('/api/recipients/{recipient}/mark-sent', [RecipientController::class, 'markAsSent']);
+
+    Route::get('/api/dashboard', [AnalyticsController::class, 'dashboard']);
+    Route::get('/api/analytics', [AnalyticsController::class, 'analytics']);
 
     Route::get('/api/invitation-links', [\App\Http\Controllers\Api\InvitationLinkController::class, 'index']);
     Route::post('/api/invitation-links', [\App\Http\Controllers\Api\InvitationLinkController::class, 'store']);

@@ -15,7 +15,9 @@ class RecipientController extends Controller
         $village    = $request->input('village');
         $documentId = $request->input('document_id');
 
-        $baseQuery = Recipient::with('invitationLinks.document')
+        $baseQuery = Recipient::with([
+            'invitationLinks' => fn ($q) => $q->latest()->with(['document', 'createdBy']),
+        ])
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($inner) use ($search) {
                     $inner->where('name_en', 'like', "%{$search}%")
@@ -38,15 +40,15 @@ class RecipientController extends Controller
 
         $totalSent    = Recipient::when($documentId, function ($q) use ($documentId) {
             $q->whereHas('invitationLinks', function ($l) use ($documentId) {
-                $l->where('document_id', $documentId);
+                $l->where('document_id', '=', $documentId);
             });
-        })->where('sent', true)->count();
+        })->where('sent', '=', true)->count();
 
         $totalPending = Recipient::when($documentId, function ($q) use ($documentId) {
             $q->whereHas('invitationLinks', function ($l) use ($documentId) {
-                $l->where('document_id', $documentId);
+                $l->where('document_id', '=', $documentId);
             });
-        })->where('sent', false)->count();
+        })->where('sent', '=', false)->count();
 
         return response()->json(array_merge($paginated->toArray(), [
             'stats' => [
@@ -87,7 +89,7 @@ class RecipientController extends Controller
 
     public function destroy(Recipient $recipient)
     {
-        $recipient->delete();
+        $recipient->deleteOrFail();
         return response()->json(['message' => 'Recipient deleted successfully']);
     }
 

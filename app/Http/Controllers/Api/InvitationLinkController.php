@@ -47,15 +47,16 @@ class InvitationLinkController extends Controller
         $token = Str::random(10);
         
         $link = InvitationLink::create([
-            'recipient_id' => $request->recipient_id,
-            'document_id' => $request->document_id,
-            'token' => $token,
-            'via' => $request->via ?? 'WhatsApp',
-            'expires_at' => null, // Or fetch from document settings
+            'recipient_id'       => $request->recipient_id,
+            'document_id'        => $request->document_id,
+            'token'              => $token,
+            'via'                => $request->via ?? 'WhatsApp',
+            'created_by_user_id' => $request->user()?->id,
+            'expires_at'         => null,
         ]);
 
         // Also mark recipient as sent
-        Recipient::where('id', $request->recipient_id)->update(['sent' => true]);
+        Recipient::where('id', '=', $request->recipient_id)->update(['sent' => true]);
 
         return response()->json($link->load(['recipient', 'document']), 201);
     }

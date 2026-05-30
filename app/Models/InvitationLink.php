@@ -11,6 +11,7 @@ class InvitationLink extends Model
         'document_id',
         'token',
         'via',
+        'created_by_user_id',
         'expires_at',
     ];
 
@@ -26,5 +27,10 @@ class InvitationLink extends Model
     public function document()
     {
         return $this->belongsTo(Document::class);
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 }

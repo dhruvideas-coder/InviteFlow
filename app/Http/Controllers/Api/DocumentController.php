@@ -37,7 +37,7 @@ class DocumentController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $query = Document::with(['fields'])->withCount('fields');
+        $query = Document::with(['fields', 'user'])->withCount('fields');
 
         if (!$user->isSuperAdmin()) {
             $query->where('user_id', $ownerId);
@@ -66,6 +66,7 @@ class DocumentController extends Controller
             'fields' => $doc->fields,
             'expires_at' => $doc->expires_at?->toDateString(),
             'file_url' => $doc->file_path ? '/file/' . $doc->file_path : null,
+            'created_by' => $doc->user?->name,
             'created_at' => $doc->created_at->toDateString(),
         ]);
 

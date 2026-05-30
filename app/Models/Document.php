@@ -40,6 +40,11 @@ class Document extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function invitationLinks()
+    {
+        return $this->hasMany(InvitationLink::class);
+    }
+
     public function fields()
     {
         return $this->hasMany(DocumentField::class)->orderBy('sort_order');
