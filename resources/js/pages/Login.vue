@@ -10,7 +10,7 @@
         <div class="w-full h-full lg:h-[85dvh] lg:max-h-[780px] lg:max-w-[1100px] mx-auto p-4 sm:p-6 lg:p-0 relative z-10 flex items-center justify-center">
 
             <div class="bg-white/80 backdrop-blur-2xl border border-white shadow-2xl rounded-3xl lg:rounded-[2.5rem] overflow-hidden flex flex-col lg:flex-row w-full h-full lg:h-full max-w-md lg:max-w-none relative">
-                
+
                 <!-- Language Switcher -->
                 <div class="absolute top-6 right-6 z-30">
                     <LanguageSwitcher />
@@ -38,23 +38,22 @@
                         </div>
 
                         <h1 class="text-4xl xl:text-5xl font-extrabold text-white leading-[1.1] mb-4">
-                            Beautiful invitations,<br />
-                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-200 to-indigo-200">delivered instantly.</span>
+                            {{ lang.t('branding_tagline') }}
                         </h1>
                         <p class="text-primary-200/70 text-sm leading-relaxed max-w-sm">
-                            Create personalized invitation documents, share them via WhatsApp, and track engagement — all in one place.
+                            {{ lang.t('branding_desc') }}
                         </p>
                     </div>
 
                     <!-- Features -->
                     <div class="relative z-10 grid gap-4">
-                        <div v-for="feat in features" :key="feat.title" class="flex items-center gap-3.5">
+                        <div v-for="feat in features" :key="feat.titleKey" class="flex items-center gap-3.5">
                             <div class="w-9 h-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center shrink-0 text-base">
                                 {{ feat.icon }}
                             </div>
                             <div>
-                                <p class="text-white font-semibold text-sm">{{ feat.title }}</p>
-                                <p class="text-primary-200/60 text-xs mt-0.5">{{ feat.desc }}</p>
+                                <p class="text-white font-semibold text-sm">{{ lang.t(feat.titleKey) }}</p>
+                                <p class="text-primary-200/60 text-xs mt-0.5">{{ lang.t(feat.descKey) }}</p>
                             </div>
                         </div>
                     </div>
@@ -71,7 +70,7 @@
                             </svg>
                         </div>
                         <h1 class="text-xl font-extrabold text-gray-900">InviteFlow</h1>
-                        <p class="text-xs text-gray-500 mt-1">Personalized invitations, delivered instantly</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ lang.t('branding_tagline') }}</p>
                     </div>
 
                     <!-- Error Banner -->
@@ -91,8 +90,8 @@
 
                     <!-- Heading -->
                     <div class="mb-8 text-center lg:text-left">
-                        <h2 class="text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight">Welcome back</h2>
-                        <p class="text-gray-500 mt-1.5 text-sm">Sign in with your Google account to continue.</p>
+                        <h2 class="text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight">{{ lang.t('welcome_back') }}</h2>
+                        <p class="text-gray-500 mt-1.5 text-sm">{{ lang.t('sign_in_subtitle') }}</p>
                     </div>
 
                     <!-- Google Sign-in -->
@@ -105,7 +104,7 @@
                                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                             </svg>
                         </div>
-                        <span>Continue with Google</span>
+                        <span>{{ lang.t('continue_with_google') }}</span>
                     </a>
 
                     <!-- Security note -->
@@ -113,16 +112,16 @@
                         <svg class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
-                        Secured with OAuth 2.0 — no password required
+                        {{ lang.t('secured_oauth') }}
                     </p>
 
-                    <!-- Project highlights (replaces roles) -->
+                    <!-- Project highlights -->
                     <div class="border-t border-gray-100 pt-6">
-                        <p class="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-4 text-center lg:text-left">What you can do</p>
+                        <p class="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-4 text-center lg:text-left">{{ lang.t('what_you_can_do') }}</p>
                         <div class="grid grid-cols-3 gap-3">
-                            <div v-for="h in highlights" :key="h.label" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-gray-50 text-center">
+                            <div v-for="h in highlights" :key="h.labelKey" class="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-gray-50 text-center">
                                 <span class="text-xl">{{ h.icon }}</span>
-                                <p class="text-[11px] font-semibold text-gray-700 leading-tight">{{ h.label }}</p>
+                                <p class="text-[11px] font-semibold text-gray-700 leading-tight">{{ lang.t(h.labelKey) }}</p>
                             </div>
                         </div>
                     </div>
@@ -136,27 +135,29 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { useLanguageStore } from '@/stores/language';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 
 const route = useRoute();
+const lang = useLanguageStore();
 const errorMessage = ref(null);
 
 onMounted(() => {
     const err = route.query.error;
-    if (err === 'google_auth_failed') errorMessage.value = 'Google authentication failed. Please try again.';
-    if (err === 'email_not_found') errorMessage.value = 'Your Google account is not registered. Contact your administrator to get access.';
-    if (err === 'account_suspended') errorMessage.value = 'Your account has been suspended. Please contact support.';
+    if (err === 'google_auth_failed') errorMessage.value = lang.t('error_google_auth_failed');
+    if (err === 'email_not_found') errorMessage.value = lang.t('error_email_not_found');
+    if (err === 'account_suspended') errorMessage.value = lang.t('error_account_suspended');
 });
 
 const features = [
-    { icon: '🎨', title: 'Visual Document Builder', desc: 'Design personalized invitation templates with drag & drop.' },
-    { icon: '💬', title: 'WhatsApp Sharing', desc: 'Send unique invitation links instantly via WhatsApp.' },
-    { icon: '📊', title: 'Real-time Analytics', desc: 'Track link opens and recipient engagement live.' },
+    { icon: '🎨', titleKey: 'feat_doc_builder', descKey: 'feat_doc_builder_desc' },
+    { icon: '💬', titleKey: 'feat_whatsapp', descKey: 'feat_whatsapp_desc' },
+    { icon: '📊', titleKey: 'feat_analytics', descKey: 'feat_analytics_desc' },
 ];
 
 const highlights = [
-    { icon: '📄', label: 'Build Documents' },
-    { icon: '👥', label: 'Manage Recipients' },
-    { icon: '📈', label: 'View Analytics' },
+    { icon: '📄', labelKey: 'build_documents' },
+    { icon: '👥', labelKey: 'manage_recipients_short' },
+    { icon: '📈', labelKey: 'view_analytics_short' },
 ];
 </script>

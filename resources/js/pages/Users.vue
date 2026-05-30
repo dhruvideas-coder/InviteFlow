@@ -1,19 +1,19 @@
 <template>
     <div class="space-y-6 max-w-5xl mx-auto">
-        
+
         <!-- Header -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div>
-                <h2 class="text-xl font-bold text-gray-900">User Management</h2>
-                <p class="text-sm text-gray-500 mt-1">Manage system administrators and frontend members.</p>
+                <h2 class="text-xl font-bold text-gray-900">{{ lang.t('user_management') }}</h2>
+                <p class="text-sm text-gray-500 mt-1">{{ lang.t('user_management_desc') }}</p>
             </div>
-            <button 
+            <button
                 v-if="auth.isSuperAdmin || auth.isAdmin"
                 @click="openCreateModal"
                 class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors shadow-sm"
             >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                Add User
+                {{ lang.t('add_user') }}
             </button>
         </div>
 
@@ -35,19 +35,19 @@
                 <table class="w-full text-left whitespace-nowrap">
                     <thead class="bg-gray-50/50 border-b border-gray-100">
                         <tr>
-                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
-                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-                            <th v-if="auth.isSuperAdmin" class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Admin/Parent</th>
-                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Joined Date</th>
-                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ lang.t('user') }}</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ lang.t('role') }}</th>
+                            <th v-if="auth.isSuperAdmin" class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ lang.t('admin_parent') }}</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ lang.t('joined_date') }}</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">{{ lang.t('actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         <tr v-if="loading" class="animate-pulse">
-                            <td colspan="5" class="px-6 py-8 text-center text-gray-400">Loading users...</td>
+                            <td colspan="5" class="px-6 py-8 text-center text-gray-400">{{ lang.t('loading_users') }}</td>
                         </tr>
                         <tr v-else-if="users.length === 0">
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-400">No users found.</td>
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-400">{{ lang.t('no_users_found') }}</td>
                         </tr>
                         <tr v-else v-for="user in users" :key="user.id" class="hover:bg-gray-50/50 transition-colors">
                             <td class="px-6 py-4">
@@ -63,13 +63,13 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4">
-                                <span v-if="user.role === 'super_admin'" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-100 text-amber-700">Super Admin</span>
-                                <span v-else-if="user.role === 'admin'" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-primary-100 text-primary-700">Admin</span>
-                                <span v-else class="px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 text-gray-600">Member</span>
+                                <span v-if="user.role === 'super_admin'" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-100 text-amber-700">{{ lang.t('super_admin') }}</span>
+                                <span v-else-if="user.role === 'admin'" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-primary-100 text-primary-700">{{ lang.t('admin') }}</span>
+                                <span v-else class="px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 text-gray-600">{{ lang.t('member') }}</span>
                             </td>
                             <td v-if="auth.isSuperAdmin" class="px-6 py-4 text-sm text-gray-600">
                                 <span v-if="user.parent" class="text-primary-600 font-medium">{{ user.parent.name }}</span>
-                                <span v-else class="text-gray-400 italic">None</span>
+                                <span v-else class="text-gray-400 italic">{{ lang.t('none') }}</span>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 {{ new Date(user.created_at).toLocaleDateString() }}
@@ -84,7 +84,7 @@
                                     </button>
                                 </div>
                                 <div v-else>
-                                    <span class="text-xs text-gray-400 italic">No access</span>
+                                    <span class="text-xs text-gray-400 italic">{{ lang.t('no_access') }}</span>
                                 </div>
                             </td>
                         </tr>
@@ -97,39 +97,39 @@
         <Transition name="fade">
             <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal"></div>
-                
+
                 <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
                     <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                        <h3 class="text-lg font-bold text-gray-900">{{ editMode ? 'Edit User' : 'Add New User' }}</h3>
+                        <h3 class="text-lg font-bold text-gray-900">{{ editMode ? lang.t('edit_user') : lang.t('add_new_user') }}</h3>
                         <button @click="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
-                    
+
                     <form @submit.prevent="saveUser" class="p-6 overflow-y-auto space-y-5">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Full Name</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">{{ lang.t('full_name') }}</label>
                             <input v-model="form.name" type="text" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none" placeholder="e.g. John Doe">
                         </div>
-                        
+
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">{{ lang.t('email_address') }}</label>
                             <input v-model="form.email" type="email" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none" placeholder="e.g. john@example.com">
                         </div>
-                        
+
                         <div v-if="auth.isSuperAdmin">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">System Role</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">{{ lang.t('system_role') }}</label>
                             <select v-model="form.role" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none">
-                                <option value="super_admin">Super Admin (Full Access)</option>
-                                <option value="admin">Admin (Can manage their members)</option>
-                                <option value="member">Member (Frontend Access)</option>
+                                <option value="super_admin">{{ lang.t('super_admin_full') }}</option>
+                                <option value="admin">{{ lang.t('admin_manage') }}</option>
+                                <option value="member">{{ lang.t('member_frontend') }}</option>
                             </select>
                         </div>
 
                         <div v-if="auth.isSuperAdmin && form.role === 'member'">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Assign to Admin (Optional)</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">{{ lang.t('assign_to_admin') }}</label>
                             <select v-model="form.parent_id" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none">
-                                <option :value="null">None (Direct Member)</option>
+                                <option :value="null">{{ lang.t('none_direct_member') }}</option>
                                 <option v-for="admin in adminsOnly" :key="admin.id" :value="admin.id">
                                     {{ admin.name }} ({{ admin.email }})
                                 </option>
@@ -137,10 +137,10 @@
                         </div>
 
                         <div class="pt-4 flex justify-end gap-3 mt-4">
-                            <button type="button" @click="closeModal" class="px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">Cancel</button>
+                            <button type="button" @click="closeModal" class="px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">{{ lang.t('cancel') }}</button>
                             <button type="submit" :disabled="saving" class="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl shadow-sm transition-all flex items-center gap-2 disabled:opacity-70">
                                 <svg v-if="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                {{ editMode ? 'Save Changes' : 'Create User' }}
+                                {{ editMode ? lang.t('save_changes') : lang.t('create_user') }}
                             </button>
                         </div>
                     </form>
@@ -154,14 +154,15 @@
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
+import { useLanguageStore } from '@/stores/language';
 
 const auth = useAuthStore();
+const lang = useLanguageStore();
 const users = ref([]);
 const loading = ref(true);
 const error = ref('');
 const success = ref('');
 
-// Modal state
 const showModal = ref(false);
 const editMode = ref(false);
 const saving = ref(false);
@@ -188,7 +189,7 @@ const fetchUsers = async () => {
         const response = await axios.get('/api/users');
         users.value = response.data;
     } catch (err) {
-        error.value = 'Failed to load users. Please try again.';
+        error.value = lang.t('failed_load_users');
         console.error(err);
     } finally {
         loading.value = false;
@@ -207,11 +208,11 @@ const openCreateModal = () => {
 const openEditModal = (user) => {
     editMode.value = true;
     currentUserId.value = user.id;
-    form.value = { 
-        name: user.name, 
-        email: user.email, 
+    form.value = {
+        name: user.name,
+        email: user.email,
         role: user.role,
-        parent_id: user.parent_id 
+        parent_id: user.parent_id
     };
     showModal.value = true;
     success.value = '';
@@ -226,32 +227,32 @@ const saveUser = async () => {
     saving.value = true;
     error.value = '';
     success.value = '';
-    
+
     try {
         if (editMode.value) {
             await axios.put(`/api/users/${currentUserId.value}`, form.value);
-            success.value = 'User updated successfully.';
+            success.value = lang.t('user_updated');
         } else {
             await axios.post('/api/users', form.value);
-            success.value = 'User created successfully.';
+            success.value = lang.t('user_created');
         }
         await fetchUsers();
         closeModal();
     } catch (err) {
-        error.value = err.response?.data?.message || 'An error occurred while saving.';
+        error.value = err.response?.data?.message || lang.t('error_saving');
     } finally {
         saving.value = false;
     }
 };
 
 const confirmDelete = async (user) => {
-    if (confirm(`Are you sure you want to delete ${user.name}? This cannot be undone.`)) {
+    if (confirm(lang.t('confirm_delete_user', { name: user.name }))) {
         try {
             await axios.delete(`/api/users/${user.id}`);
-            success.value = 'User deleted successfully.';
+            success.value = lang.t('user_deleted');
             await fetchUsers();
         } catch (err) {
-            error.value = err.response?.data?.message || 'Failed to delete user.';
+            error.value = err.response?.data?.message || lang.t('failed_delete_user');
         }
     }
 };

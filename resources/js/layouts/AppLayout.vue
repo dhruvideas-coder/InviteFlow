@@ -102,7 +102,7 @@
                     <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
-                    <span v-show="showLabels" class="whitespace-nowrap">Sign out</span>
+                    <span v-show="showLabels" class="whitespace-nowrap">{{ lang.t('sign_out') }}</span>
                 </button>
             </div>
         </aside>
@@ -226,8 +226,8 @@ const allNavItems = computed(() => [
     { label: lang.t('settings'), to: '/settings', icon: Settings },
     { label: lang.t('users'), to: '/users', icon: UserCog, adminOnly: true },
     { divider: true, superAdminOnly: true },
-    { label: 'Subscription Plans', to: '/admin/plans', icon: Shield, badge: 'Admin', superAdminOnly: true },
-    { label: 'Tenant Management', to: '/admin/tenants', icon: Building2, superAdminOnly: true },
+    { label: lang.t('subscription_plans'), to: '/admin/plans', icon: Shield, badge: 'Admin', superAdminOnly: true },
+    { label: lang.t('tenant_management'), to: '/admin/tenants', icon: Building2, superAdminOnly: true },
 ]);
 
 const visibleNavItems = computed(() => {
@@ -248,8 +248,8 @@ const pageTitles = {
     '/subscription': 'subscription',
     '/settings': 'settings',
     '/users': 'users',
-    '/admin/plans': 'Subscription Plans',
-    '/admin/tenants': 'Tenant Management',
+    '/admin/plans': 'subscription_plans',
+    '/admin/tenants': 'tenant_management',
 };
 
 const translatedPageTitle = computed(() => {
