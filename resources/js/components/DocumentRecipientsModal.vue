@@ -29,12 +29,12 @@
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-5">
 
                         <!-- Action row -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <h2 class="text-xl font-bold text-gray-900">{{ lang.t('all_recipients') }}</h2>
-                                <p class="text-sm text-gray-500">{{ document?.name }}</p>
+                        <div class="flex flex-row items-center justify-between gap-4">
+                            <div class="min-w-0">
+                                <h2 class="text-xl font-bold text-gray-900 truncate">{{ lang.t('all_recipients') }}</h2>
+                                <p class="text-sm text-gray-500 truncate">{{ document?.name }}</p>
                             </div>
-                            <button @click="openSelectModal()" class="btn btn-primary self-start sm:self-auto">
+                            <button @click="openSelectModal()" class="btn btn-primary shrink-0">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                                 </svg>

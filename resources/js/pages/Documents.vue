@@ -38,18 +38,20 @@
                 <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input v-model="search" type="text" class="input pl-10" :placeholder="lang.t('search_documents')" @input="onSearchInput" />
             </div>
-            <select v-model="statusFilter" class="select sm:w-48" @change="fetchDocuments(1)">
-                <option value="">{{ lang.t('all_statuses') }}</option>
-                <option value="draft">{{ lang.t('draft') }}</option>
-                <option value="active">{{ lang.t('active') }}</option>
-                <option value="completed">{{ lang.t('completed') }}</option>
-                <option value="expired">{{ lang.t('expired') }}</option>
-            </select>
-            <select v-model="perPage" class="select sm:w-32" @change="fetchDocuments(1)">
-                <option :value="10">10 / Page</option>
-                <option :value="25">25 / Page</option>
-                <option :value="50">50 / Page</option>
-            </select>
+            <div class="flex gap-3 sm:contents">
+                <select v-model="statusFilter" class="select flex-1 sm:flex-none sm:w-48" @change="fetchDocuments(1)">
+                    <option value="">{{ lang.t('all_statuses') }}</option>
+                    <option value="draft">{{ lang.t('draft') }}</option>
+                    <option value="active">{{ lang.t('active') }}</option>
+                    <option value="completed">{{ lang.t('completed') }}</option>
+                    <option value="expired">{{ lang.t('expired') }}</option>
+                </select>
+                <select v-model="perPage" class="select w-28 shrink-0 sm:shrink sm:w-32" @change="fetchDocuments(1)">
+                    <option :value="10">10 / Page</option>
+                    <option :value="25">25 / Page</option>
+                    <option :value="50">50 / Page</option>
+                </select>
+            </div>
         </div>
 
         <!-- Table -->

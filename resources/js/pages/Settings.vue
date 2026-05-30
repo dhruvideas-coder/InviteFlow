@@ -1,9 +1,12 @@
 <template>
-    <div class="space-y-6 max-w-2xl">
+    <div class="space-y-6">
         <div>
             <h2 class="text-xl font-bold text-gray-900">{{ lang.t('settings') }}</h2>
             <p class="text-sm text-gray-500 mt-0.5">{{ lang.t('settings_subtitle') }}</p>
         </div>
+
+        <!-- Profile + WhatsApp — side by side on desktop -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
         <!-- Profile -->
         <div class="card p-5 space-y-4">
@@ -61,6 +64,8 @@
                 <button class="btn btn-primary">{{ lang.t('update_template') }}</button>
             </div>
         </div>
+
+        </div><!-- end grid -->
 
         <!-- Notifications -->
         <div v-if="!auth.isMember" class="card p-5 space-y-4">
