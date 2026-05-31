@@ -58,12 +58,23 @@ class RecipientController extends Controller
         ]));
     }
 
+    private function normalizeMobile(Request $request): void
+    {
+        $digits = preg_replace('/\D/', '', $request->input('mobile', ''));
+        if (strlen($digits) === 12 && str_starts_with($digits, '91')) {
+            $digits = substr($digits, 2);
+        }
+        $request->merge(['mobile' => '+91' . $digits]);
+    }
+
     public function store(Request $request)
     {
+        $this->normalizeMobile($request);
+
         $validated = $request->validate([
             'name_en' => 'required|string|max:255',
             'name_gu' => 'nullable|string|max:255',
-            'mobile' => 'required|string|max:20',
+            'mobile' => ['required', 'regex:/^\+91[6-9]\d{9}$/', 'unique:recipients,mobile'],
             'village_en' => 'nullable|string|max:255',
             'village_gu' => 'nullable|string|max:255',
         ]);
@@ -73,10 +84,12 @@ class RecipientController extends Controller
 
     public function update(Request $request, Recipient $recipient)
     {
+        $this->normalizeMobile($request);
+
         $validated = $request->validate([
             'name_en' => 'required|string|max:255',
             'name_gu' => 'nullable|string|max:255',
-            'mobile' => 'required|string|max:20',
+            'mobile' => ['required', 'regex:/^\+91[6-9]\d{9}$/', "unique:recipients,mobile,{$recipient->id}"],
             'village_en' => 'nullable|string|max:255',
             'village_gu' => 'nullable|string|max:255',
             'sent' => 'nullable|boolean',

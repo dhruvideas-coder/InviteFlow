@@ -238,7 +238,19 @@
                         </div>
                         <div class="form-group">
                             <label class="label">{{ lang.t('mobile_number') }} <span class="text-red-400">*</span></label>
-                            <input v-model="form.mobile" type="tel" class="input" placeholder="+91 98765 43210" />
+                            <div class="flex items-center border rounded-lg overflow-hidden" :class="formErrors.mobile ? 'border-red-400' : 'border-gray-300'">
+                                <span class="px-3 py-2 bg-gray-100 text-gray-500 text-sm font-medium border-r select-none" :class="formErrors.mobile ? 'border-red-400' : 'border-gray-300'">+91</span>
+                                <input
+                                    v-model="form.mobile"
+                                    type="tel"
+                                    inputmode="numeric"
+                                    maxlength="10"
+                                    class="flex-1 px-3 py-2 text-sm outline-none bg-white"
+                                    placeholder="98765 43210"
+                                    @input="form.mobile = form.mobile.replace(/\D/g, '').slice(0, 10); formErrors.mobile = ''"
+                                />
+                            </div>
+                            <p v-if="formErrors.mobile" class="text-xs text-red-500 mt-1">{{ formErrors.mobile }}</p>
                         </div>
                         <div class="form-group">
                             <label class="label">{{ lang.t('village_english') }}</label>
@@ -970,7 +982,10 @@ async function pickFromContacts() {
             const c = pickedContacts.value[0];
             isEditing.value = false;
             editId.value = null;
-            form.value = { name_en: c.name, name_gu: '', mobile: c.mobile, village_en: '', village_gu: '' };
+            formErrors.value = { mobile: '' };
+            const cDigits = String(c.mobile || '').replace(/\D/g, '');
+            const cTen = cDigits.startsWith('91') && cDigits.length === 12 ? cDigits.slice(2) : cDigits.slice(-10);
+            form.value = { name_en: c.name, name_gu: '', mobile: cTen, village_en: '', village_gu: '' };
             showAddModal.value = true;
         } else {
             showContactsModal.value = true;
@@ -1062,6 +1077,9 @@ const validateAndProcessData = (data) => {
         return;
     }
 
+    const seenMobiles = new Set();
+    let duplicatesInFile = 0;
+
     importedData.value = data.map((row, index) => {
         let name = String(row[nameKey] || '').trim();
         let mobile = String(row[phoneKey] || '').trim();
@@ -1083,6 +1101,12 @@ const validateAndProcessData = (data) => {
             }
         }
 
+        if (seenMobiles.has(cleanedMobile)) {
+            duplicatesInFile++;
+            return null;
+        }
+        seenMobiles.add(cleanedMobile);
+
         return {
             id: index,
             name: name,
@@ -1090,7 +1114,11 @@ const validateAndProcessData = (data) => {
             village: village,
         };
     }).filter(r => r !== null);
-    
+
+    if (duplicatesInFile > 0) {
+        importError.value = `${duplicatesInFile} duplicate mobile number(s) were removed from the file.`;
+    }
+
     selectedImportRows.value = importedData.value.map(r => r.id);
 };
 
@@ -1127,13 +1155,29 @@ async function saveImportedRecipients() {
                 village_gu: villageMap[r.village] || '',
             }))
         );
-        
-        // Refresh the first page to show new recipients
+
+        const savedCount = results.filter(r => r.status === 'fulfilled').length;
+        const duplicateCount = results.filter(
+            r => r.status === 'rejected' && r.reason?.response?.status === 422 && r.reason?.response?.data?.errors?.mobile
+        ).length;
+        const otherErrors = results.filter(
+            r => r.status === 'rejected' && !(r.reason?.response?.status === 422 && r.reason?.response?.data?.errors?.mobile)
+        ).length;
+
         await fetchRecipients(1);
-        
-        showCsvModal.value = false;
-        importedData.value = [];
-        selectedImportRows.value = [];
+
+        if (duplicateCount > 0 || otherErrors > 0) {
+            let msg = `${savedCount} recipient(s) saved.`;
+            if (duplicateCount > 0) msg += ` ${duplicateCount} skipped — mobile number already exists.`;
+            if (otherErrors > 0) msg += ` ${otherErrors} failed due to other errors.`;
+            importError.value = msg;
+            importedData.value = [];
+            selectedImportRows.value = [];
+        } else {
+            showCsvModal.value = false;
+            importedData.value = [];
+            selectedImportRows.value = [];
+        }
     } catch (err) {
         console.error('Failed to save imported recipients:', err);
     } finally {
@@ -1216,6 +1260,7 @@ const docs = ref([]);
 const loadingDocs = ref(false);
 const sending = ref(false);
 const saving = ref(false);
+const formErrors = ref({ mobile: '' });
 const isEditing = ref(false);
 const editId = ref(null);
 const copiedToken = ref(null);
@@ -1409,6 +1454,7 @@ function openAddModal() {
     isEditing.value = false;
     editId.value = null;
     form.value = { name_en: '', name_gu: '', mobile: '', village_en: '', village_gu: '' };
+    formErrors.value = { mobile: '' };
     showAddModal.value = true;
 }
 
@@ -1416,10 +1462,12 @@ function editRecipient(recipient) {
     isEditing.value = true;
     editId.value = recipient.id;
     suppressAutoConvert = true;
+    formErrors.value = { mobile: '' };
+    const digits = String(recipient.mobile || '').replace(/\D/g, '');
     form.value = {
         name_en: recipient.name_en,
         name_gu: recipient.name_gu,
-        mobile: recipient.mobile,
+        mobile: digits.startsWith('91') && digits.length === 12 ? digits.slice(2) : digits.slice(-10),
         village_en: recipient.village_en,
         village_gu: recipient.village_gu
     };
@@ -1433,22 +1481,32 @@ function toggleAll(e) {
 
 async function saveRecipient() {
     if (!form.value.name_en || !form.value.mobile) return;
-    
+
+    const digits = form.value.mobile.replace(/\D/g, '');
+    if (digits.length !== 10) {
+        formErrors.value.mobile = 'Please enter a valid 10-digit mobile number.';
+        return;
+    }
+
+    formErrors.value = { mobile: '' };
     saving.value = true;
+    const payload = { ...form.value, mobile: '+91' + digits };
     try {
         if (isEditing.value) {
-            await axios.put(`/api/recipients/${editId.value}`, form.value);
-            // Refresh current page
+            await axios.put(`/api/recipients/${editId.value}`, payload);
             await fetchRecipients(pagination.value.current_page);
         } else {
-            await axios.post('/api/recipients', form.value);
-            // Refresh first page
+            await axios.post('/api/recipients', payload);
             await fetchRecipients(1);
         }
         showAddModal.value = false;
         form.value = { name_en: '', name_gu: '', mobile: '', village_en: '', village_gu: '' };
     } catch (err) {
-        console.error('Failed to save recipient:', err);
+        if (err.response?.status === 422 && err.response.data?.errors?.mobile) {
+            formErrors.value.mobile = err.response.data.errors.mobile[0];
+        } else {
+            console.error('Failed to save recipient:', err);
+        }
     } finally {
         saving.value = false;
     }
