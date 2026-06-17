@@ -72,11 +72,10 @@
                         </div>
                         <div class="form-group">
                             <label class="label">{{ lang.t('language_selection') }}</label>
-                            <select v-model="form.language" class="select bg-white border-gray-200">
-                                <option value="en">English (Display English Names)</option>
-                                <option value="gu">Gujarati (Display Gujarati Names)</option>
-                            </select>
-                            <p class="text-[10px] text-gray-400 mt-2">Choose which language version of recipient details to use for this document.</p>
+                            <div class="flex items-center gap-2 px-4 py-3 rounded-xl bg-primary-50/50 border border-primary-100">
+                                <Sparkles class="w-4 h-4 text-primary-500 shrink-0" />
+                                <p class="text-xs text-primary-700 font-medium">Language is detected automatically from the document you upload in the next step.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -127,13 +126,32 @@
                                 <Trash2 class="w-4 h-4" />
                             </button>
                         </div>
+
+                        <!-- Auto-detected language -->
+                        <div class="mt-4 flex items-center gap-3 p-4 rounded-xl border" :class="detectingLanguage ? 'bg-gray-50 border-gray-100' : 'bg-primary-50/40 border-primary-100'">
+                            <Loader2 v-if="detectingLanguage" class="w-5 h-5 text-primary-500 animate-spin shrink-0" />
+                            <Sparkles v-else class="w-5 h-5 text-primary-500 shrink-0" />
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Detected Language</p>
+                                <p v-if="detectingLanguage" class="text-sm font-bold text-gray-500">Detecting…</p>
+                                <p v-else class="text-sm font-bold text-gray-900">
+                                    {{ form.language === 'gu' ? 'Gujarati' : 'English' }}
+                                    <span v-if="!languageAutoDetected" class="text-[10px] text-amber-500 font-medium ml-1">(couldn't auto-detect — set manually)</span>
+                                </p>
+                            </div>
+                            <!-- Override in case detection is wrong -->
+                            <select v-model="form.language" :disabled="detectingLanguage" class="select w-auto text-xs py-1.5 bg-white border-gray-200">
+                                <option value="gu">Gujarati</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="mt-10 flex justify-between">
                         <button @click="currentStep = 1" class="btn btn-secondary px-6">{{ lang.t('cancel') }}</button>
-                        <button @click="currentStep = 3" :disabled="!selectedFile" class="btn btn-primary px-8 py-3">
-                            {{ lang.t('continue') }}
-                            <ArrowRight class="w-4 h-4 ml-2" />
+                        <button @click="currentStep = 3" :disabled="!selectedFile || detectingLanguage" class="btn btn-primary px-8 py-3">
+                            {{ detectingLanguage ? 'Detecting language…' : lang.t('continue') }}
+                            <ArrowRight v-if="!detectingLanguage" class="w-4 h-4 ml-2" />
                         </button>
                     </div>
                 </div>
@@ -477,11 +495,12 @@ import { ref, computed, onMounted, onUnmounted, watchEffect, nextTick, watch } f
 import { useRouter, useRoute, RouterLink } from 'vue-router';
 import { 
     ChevronLeft, ChevronRight, Check, Upload, FileText, Trash2, ArrowRight, 
-    Plus, User, X, MousePointer2, Loader2, CheckCircle, MapPin
+    Plus, User, X, MousePointer2, Loader2, CheckCircle, MapPin, Sparkles
 } from 'lucide-vue-next';
 import axios from 'axios';
 import PdfCanvas from '@/components/PdfCanvas.vue';
 import { useLanguageStore } from '@/stores/language';
+import { detectDocumentLanguage } from '@/utils/languageDetect';
 
 const router = useRouter();
 const route = useRoute();
@@ -498,10 +517,9 @@ const form = ref({
     language: lang.currentLocale
 });
 
-// Sync form language with global locale
-watch(() => lang.currentLocale, (newLocale) => {
-    form.value.language = newLocale;
-});
+// Language is auto-detected from the uploaded file (see handleFileSelect).
+const detectingLanguage = ref(false);
+const languageAutoDetected = ref(false);
 
 const selectedFile = ref(null);
 const previewSrc = ref(null);
@@ -592,16 +610,45 @@ const handleImageLoad = (e) => {
 const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
+        // Release the previous preview before swapping in the new file.
+        if (previewSrc.value?.startsWith('blob:')) URL.revokeObjectURL(previewSrc.value);
         selectedFile.value = file;
         previewSrc.value = URL.createObjectURL(file);
+        autoDetectLanguage(file);
+    }
+};
+
+// Each detection claims a token; a slow earlier run can't clobber a newer file.
+let detectSeq = 0;
+
+// Read the document and auto-pick English vs Gujarati (mostly-used wins).
+const autoDetectLanguage = async (file) => {
+    const seq = ++detectSeq;
+    detectingLanguage.value = true;
+    languageAutoDetected.value = false;
+    try {
+        const detected = await detectDocumentLanguage(file);
+        if (seq !== detectSeq) return; // a newer file was selected meanwhile
+        if (detected) {
+            form.value.language = detected;
+            languageAutoDetected.value = true;
+        }
+        // If detection returns null we leave languageAutoDetected false so the
+        // UI prompts the user to set it manually instead of trusting a stale value.
+    } finally {
+        if (seq === detectSeq) detectingLanguage.value = false;
     }
 };
 
 const clearFile = () => {
+    detectSeq++; // invalidate any in-flight detection
+    if (previewSrc.value?.startsWith('blob:')) URL.revokeObjectURL(previewSrc.value);
     selectedFile.value = null;
     previewSrc.value = null;
     pdfTotalPages.value = 1;
     currentPage.value = 1;
+    detectingLanguage.value = false;
+    languageAutoDetected.value = false;
     if (fileInput.value) fileInput.value.value = '';
 };
 
@@ -809,6 +856,7 @@ onMounted(async () => {
             form.value.name = data.name;
             form.value.description = data.description;
             form.value.language = data.language || 'gu';
+            languageAutoDetected.value = true; // use the saved value; no re-detect on edit
             fields.value = data.fields || [];
             previewSrc.value = data.file_url;
             selectedFile.value = { name: data.file_name, size: 0 }; // Placeholder
