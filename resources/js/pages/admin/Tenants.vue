@@ -5,12 +5,15 @@
                 <h2 class="text-xl font-bold text-gray-900">Tenant Management</h2>
                 <p class="text-sm text-gray-500 mt-0.5">Manage all business admin accounts on the platform</p>
             </div>
-            <button class="btn btn-primary">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-                Add Admin
-            </button>
+            <div class="flex items-center gap-3">
+                <ViewToggle v-model="viewMode" />
+                <button class="btn btn-primary">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Admin
+                </button>
+            </div>
         </div>
 
         <!-- Stats -->
@@ -21,22 +24,24 @@
             </div>
         </div>
 
-        <!-- Table -->
-        <div class="table-wrap">
-            <div class="px-4 py-3 border-b border-gray-100 flex gap-3">
-                <div class="relative flex-1">
-                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <input v-model="search" type="text" class="input pl-10" placeholder="Search tenants..." />
-                </div>
-                <select v-model="planFilter" class="select sm:w-36">
-                    <option value="">All Plans</option>
-                    <option value="basic">Basic</option>
-                    <option value="pro">Pro</option>
-                    <option value="enterprise">Enterprise</option>
-                </select>
+        <!-- Search / Filter (shared between views) -->
+        <div class="flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-1">
+                <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input v-model="search" type="text" class="input pl-10" placeholder="Search tenants..." />
             </div>
+            <select v-model="planFilter" class="select sm:w-36">
+                <option value="">All Plans</option>
+                <option value="basic">Basic</option>
+                <option value="pro">Pro</option>
+                <option value="enterprise">Enterprise</option>
+            </select>
+        </div>
+
+        <!-- Table View (desktop only when table mode is active) -->
+        <div class="table-wrap hidden" :class="{ 'sm:block': viewMode === 'table' }">
             <table class="table">
                 <thead>
                     <tr>
@@ -95,11 +100,66 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Card View (mobile always; desktop when card mode is active) -->
+        <div :class="{ 'sm:hidden': viewMode === 'table' }">
+            <div v-if="!filteredTenants.length" class="card py-12 text-center text-gray-400 text-sm">
+                No tenants found
+            </div>
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div v-for="t in filteredTenants" :key="t.id" class="card card-hover p-5 flex flex-col gap-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                                {{ t.name[0] }}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-medium text-gray-900 text-sm truncate">{{ t.name }}</p>
+                                <p class="text-xs text-gray-400 truncate">{{ t.email }}</p>
+                            </div>
+                        </div>
+                        <span :class="['badge text-xs shrink-0', planClass(t.plan)]">{{ t.plan }}</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 h-1.5 rounded-full bg-gray-100">
+                                <div class="h-full rounded-full bg-primary-500" :style="{ width: t.usagePct + '%' }"></div>
+                            </div>
+                            <span class="text-xs text-gray-600 whitespace-nowrap">{{ t.usagePct }}%</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>{{ t.docs }} documents</span>
+                            <span>{{ t.joined }}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-3 mt-auto border-t border-gray-50">
+                        <span :class="['badge text-xs', t.active ? 'badge-green' : 'badge-red']">
+                            {{ t.active ? 'Active' : 'Suspended' }}
+                        </span>
+                        <div class="flex gap-1">
+                            <button class="btn btn-ghost btn-sm text-xs">View</button>
+                            <button
+                                @click="t.active = !t.active"
+                                :class="['btn btn-sm text-xs', t.active ? 'btn-ghost text-amber-600 hover:bg-amber-50' : 'btn-ghost text-emerald-600 hover:bg-emerald-50']"
+                            >
+                                {{ t.active ? 'Suspend' : 'Activate' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
+import { useViewMode } from '@/composables/useViewMode';
+import ViewToggle from '@/components/ViewToggle.vue';
+
+const { viewMode } = useViewMode('tenants');
 
 const search = ref('');
 const planFilter = ref('');

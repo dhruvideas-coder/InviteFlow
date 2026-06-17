@@ -269,7 +269,9 @@ export const useLanguageStore = defineStore('language', () => {
             in_document: 'In Document',
             available: 'available',
             add_to_document: 'Add {count} to Document',
-            send_whatsapp_to_link: 'Send a WhatsApp invitation to link recipients to this document.'
+            send_whatsapp_to_link: 'Send a WhatsApp invitation to link recipients to this document.',
+            table_view: 'Table View',
+            card_view: 'Card View'
         },
         gu: {
             dashboard: 'ડેશબોર્ડ',
@@ -522,7 +524,9 @@ export const useLanguageStore = defineStore('language', () => {
             in_document: 'દસ્તાવેજમાં',
             available: 'ઉપલબ્ધ',
             add_to_document: '{count} દસ્તાવેજમાં ઉમેરો',
-            send_whatsapp_to_link: 'લેનારાઓને આ દસ્તાવેજ સાથে જોડવા WhatsApp આમંત્રણ મોકલો.'
+            send_whatsapp_to_link: 'લેનારાઓને આ દસ્તાવેજ સાથে જોડવા WhatsApp આમંત્રણ મોકલો.',
+            table_view: 'ટેબલ વ્યૂ',
+            card_view: 'કાર્ડ વ્યૂ'
         }
     });
 

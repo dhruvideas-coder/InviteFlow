@@ -5,7 +5,8 @@
                 <h2 class="text-xl font-bold text-gray-900">{{ lang.t('all_recipients') }}</h2>
                 <p class="text-sm text-gray-500">Manage invitation recipients and their details</p>
             </div>
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+                <ViewToggle v-model="viewMode" />
                 <button @click="showCsvModal = true" class="btn btn-secondary">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -81,16 +82,13 @@
                 <option v-for="v in villages" :key="v" :value="v">{{ v }}</option>
             </select>
             <select v-model="perPage" class="select w-28 shrink-0" @change="fetchRecipients(1)">
-                <option :value="10">10 / Page</option>
-                <option :value="25">25 / Page</option>
-                <option :value="50">50 / Page</option>
-                <option :value="100">100 / Page</option>
+                <option v-for="n in perPageOptions" :key="n" :value="n">{{ n }} / Page</option>
             </select>
             </div>
         </div>
 
-        <!-- Table -->
-        <div class="table-wrap">
+        <!-- Table View (desktop only when table mode is active) -->
+        <div class="table-wrap hidden" :class="{ 'sm:block': viewMode === 'table' }">
             <table class="table min-w-[500px] sm:min-w-[700px]">
                 <thead>
                     <tr>
@@ -151,9 +149,56 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
 
-            <!-- Bulk actions & Pagination -->
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-white border-t border-gray-100">
+        <!-- Card View (mobile always; desktop when card mode is active) -->
+        <div :class="{ 'sm:hidden': viewMode === 'table' }">
+            <div v-if="!recipients.length" class="card py-12 text-center text-gray-400 text-sm">
+                No recipients found
+            </div>
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div
+                    v-for="r in recipients"
+                    :key="r.id"
+                    class="card card-hover p-4 flex flex-col gap-3"
+                    :class="{ 'ring-2 ring-primary-400': selected.includes(r.id) }"
+                >
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" class="rounded mt-1 shrink-0" v-model="selected" :value="r.id" />
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                            {{ (lang.currentLocale === 'gu' ? r.name_gu || r.name_en : r.name_en)[0] }}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-semibold text-gray-900 truncate">{{ lang.currentLocale === 'gu' ? r.name_gu || r.name_en : r.name_en }}</p>
+                            <p v-if="lang.currentLocale === 'en' && r.name_gu" class="text-xs text-gray-500 truncate" style="font-family: serif;">{{ r.name_gu }}</p>
+                            <p class="text-gray-600 font-mono text-xs mt-0.5">{{ formatMobile(r.mobile) }}</p>
+                        </div>
+                        <span :class="['badge text-xs shrink-0', r.sent ? 'badge-green' : 'badge-gray']">
+                            {{ r.sent ? lang.t('sent') : lang.t('pending') }}
+                        </span>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-3 mt-auto border-t border-gray-50">
+                        <span class="tag">{{ lang.currentLocale === 'gu' ? r.village_gu || r.village_en : r.village_en }}</span>
+                        <div class="flex items-center gap-1">
+                            <button @click="editRecipient(r)" class="btn btn-ghost btn-sm" title="Edit">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                            </button>
+                            <button @click="deleteRecipient(r.id)" class="btn btn-ghost btn-sm text-red-400 hover:text-red-500 hover:bg-red-50" title="Delete">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk actions & Pagination (shared between views) -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-white rounded-2xl border border-gray-100 shadow-sm">
                 <div class="flex items-center gap-3">
                     <div v-if="selected.length" class="flex items-center gap-2">
                         <span class="text-sm text-primary-700 font-medium">{{ selected.length }} {{ lang.t('selected') }}</span>
@@ -204,7 +249,7 @@
                     </button>
                 </div>
             </div>
-        </div>
+        <!-- /Bulk actions & Pagination -->
 
         <!-- Add/Edit Recipient Modal -->
         <Teleport to="body">
@@ -917,8 +962,11 @@ import { useLanguageStore } from '@/stores/language';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { formatMobile } from '@/utils/format';
+import { useViewMode } from '@/composables/useViewMode';
+import ViewToggle from '@/components/ViewToggle.vue';
 
 const lang = useLanguageStore();
+const { viewMode } = useViewMode('recipients');
 
 const search = ref('');
 const villageFilter = ref('');
@@ -927,13 +975,23 @@ const showAddModal = ref(false);
 const showCsvModal = ref(false);
 
 // Pagination State
-const perPage = ref(10);
+// Card view uses multiples of 9 (fits the 3-column grid), table view uses 10/25/50/100.
+const perPageOptions = computed(() => (viewMode.value === 'card' ? [9, 18, 27, 36] : [10, 25, 50, 100]));
+const perPage = ref(viewMode.value === 'card' ? 9 : 10);
 const pagination = ref({
     current_page: 1,
     last_page: 1,
     total: 0,
     from: 0,
     to: 0
+});
+
+// Switching view mode swaps the per-page option set and reloads from page 1.
+watch(viewMode, () => {
+    if (!perPageOptions.value.includes(perPage.value)) {
+        perPage.value = perPageOptions.value[0];
+    }
+    fetchRecipients(1);
 });
 
 const totalCount = computed(() => pagination.value.total);

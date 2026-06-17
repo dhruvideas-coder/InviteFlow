@@ -6,10 +6,13 @@
                 <h1 class="text-2xl font-bold text-gray-900 tracking-tight">{{ lang.t('documents') }}</h1>
                 <p class="text-sm text-gray-500 mt-1">{{ auth.isMember ? 'View documents shared with you.' : 'Manage bulk document requests and tracking.' }}</p>
             </div>
-            <RouterLink v-if="!auth.isMember" to="/documents/create" class="btn btn-primary px-6 py-2.5 shadow-lg shadow-primary-200 flex items-center gap-2">
-                <Plus class="w-4 h-4 stroke-[3px]" />
-                <span>{{ lang.t('new_document') }}</span>
-            </RouterLink>
+            <div class="flex items-center gap-3">
+                <ViewToggle v-model="viewMode" />
+                <RouterLink v-if="!auth.isMember" to="/documents/create" class="btn btn-primary px-6 py-2.5 shadow-lg shadow-primary-200 flex items-center gap-2">
+                    <Plus class="w-4 h-4 stroke-[3px]" />
+                    <span>{{ lang.t('new_document') }}</span>
+                </RouterLink>
+            </div>
         </div>
 
         <!-- Summary Stats -->
@@ -47,15 +50,13 @@
                     <option value="expired">{{ lang.t('expired') }}</option>
                 </select>
                 <select v-model="perPage" class="select w-28 shrink-0 sm:shrink sm:w-32" @change="fetchDocuments(1)">
-                    <option :value="10">10 / Page</option>
-                    <option :value="25">25 / Page</option>
-                    <option :value="50">50 / Page</option>
+                    <option v-for="n in perPageOptions" :key="n" :value="n">{{ n }} / Page</option>
                 </select>
             </div>
         </div>
 
-        <!-- Table -->
-        <div class="table-wrap">
+        <!-- Table View (desktop only when table mode is active) -->
+        <div class="table-wrap hidden" :class="{ 'sm:block': viewMode === 'table' }">
             <table class="table">
                 <thead>
                     <tr>
@@ -146,9 +147,81 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
 
-            <!-- Pagination -->
-            <div v-if="pagination.total > 0" class="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-white border-t border-gray-100">
+        <!-- Card View (mobile always; desktop when card mode is active) -->
+        <div :class="{ 'sm:hidden': viewMode === 'table' }">
+            <!-- Loading skeletons -->
+            <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div v-for="i in 6" :key="i" class="card p-5 animate-pulse space-y-3">
+                    <div class="h-4 bg-gray-100 rounded w-2/3"></div>
+                    <div class="h-3 bg-gray-100 rounded w-1/2"></div>
+                    <div class="h-6 bg-gray-100 rounded w-1/3"></div>
+                </div>
+            </div>
+            <!-- Empty state -->
+            <div v-else-if="!documents.length" class="card flex flex-col items-center gap-2 py-16 text-center">
+                <div class="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mb-2">
+                    <Mail class="w-8 h-8 text-gray-300" />
+                </div>
+                <h3 class="font-semibold text-gray-800">{{ lang.t('no_documents_found') }}</h3>
+                <p class="text-sm text-gray-400">{{ auth.isMember ? 'No documents have been shared with you yet.' : lang.t('create_first_document') }}</p>
+                <RouterLink v-if="!auth.isMember" to="/documents/create" class="btn btn-primary mt-4">
+                    {{ lang.t('create_document') }}
+                </RouterLink>
+            </div>
+            <!-- Cards -->
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div v-for="doc in documents" :key="doc.id" class="card card-hover p-5 flex flex-col gap-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <h3 class="font-semibold text-gray-900 line-clamp-1">{{ doc.name }}</h3>
+                            <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">{{ doc.description || lang.t('no_description') }}</p>
+                        </div>
+                        <span :class="['badge shrink-0', statusClass(doc.status)]">{{ lang.t(doc.status.toLowerCase()) }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-4 text-xs text-gray-500">
+                        <div class="flex items-center gap-1.5">
+                            <div :class="['w-1.5 h-1.5 rounded-full shrink-0', doc.completed_signers > 0 ? 'bg-emerald-400' : 'bg-gray-300']"></div>
+                            <span class="font-medium">{{ doc.completed_signers }}/{{ doc.total_signers }} {{ lang.t('recipients') }}</span>
+                        </div>
+                        <span class="whitespace-nowrap">{{ formatDate(doc.created_at) }}</span>
+                    </div>
+
+                    <div v-if="auth.isSuperAdmin" class="text-xs text-gray-500">
+                        {{ lang.t('admin') }}: <span class="font-medium text-gray-700">{{ doc.created_by || '—' }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-2 pt-3 mt-auto border-t border-gray-50">
+                        <template v-if="!auth.isMember">
+                            <RouterLink v-if="doc.status === 'draft'" :to="`/documents/${doc.id}/edit`" class="btn btn-secondary btn-sm flex-1">{{ lang.t('edit') }}</RouterLink>
+                            <button @click="openPreview(doc)" class="btn btn-secondary btn-sm flex-1">{{ lang.t('view') }}</button>
+                            <button @click="openRecipientsModal(doc)" class="btn btn-secondary btn-sm flex-1 gap-1">
+                                <Users class="w-3.5 h-3.5 shrink-0" />
+                                {{ lang.t('recipients') }}
+                            </button>
+                            <button @click="confirmDelete(doc)" class="btn btn-ghost btn-sm text-gray-400 hover:text-red-500 shrink-0">
+                                <Trash2 class="w-3.5 h-3.5" />
+                            </button>
+                        </template>
+                        <template v-else>
+                            <button @click="openPreview(doc)" class="btn btn-secondary btn-sm flex-1 gap-1">
+                                <Eye class="w-3.5 h-3.5 shrink-0" />
+                                {{ lang.t('view_document') }}
+                            </button>
+                            <button @click="openRecipientsModal(doc)" class="btn btn-secondary btn-sm flex-1 gap-1">
+                                <Users class="w-3.5 h-3.5 shrink-0" />
+                                {{ lang.t('recipients') }}
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination (shared between table & card views) -->
+        <div v-if="pagination.total > 0" class="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-white rounded-2xl border border-gray-100 shadow-sm">
                 <span class="text-xs text-gray-500">
                     Showing {{ pagination.from || 0 }} to {{ pagination.to || 0 }} of {{ pagination.total || 0 }} documents
                 </span>
@@ -189,7 +262,6 @@
                     </button>
                 </div>
             </div>
-        </div>
 
         <!-- Delete Modal -->
         <Transition name="modal">
@@ -311,17 +383,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watchEffect } from 'vue';
+import { ref, onMounted, computed, watch, watchEffect } from 'vue';
 import { RouterLink } from 'vue-router';
 import { Plus, Search, Mail, Trash2, Loader2, X, ChevronLeft, ChevronRight, Eye, Users } from 'lucide-vue-next';
 import axios from 'axios';
 import PdfCanvas from '@/components/PdfCanvas.vue';
 import DocumentRecipientsModal from '@/components/DocumentRecipientsModal.vue';
+import ViewToggle from '@/components/ViewToggle.vue';
 import { useLanguageStore } from '@/stores/language';
 import { useAuthStore } from '@/stores/auth';
+import { useViewMode } from '@/composables/useViewMode';
 
 const lang = useLanguageStore();
 const auth = useAuthStore();
+const { viewMode } = useViewMode('documents');
 
 // Document Recipients Modal
 const showRecipientsModal = ref(false);
@@ -341,13 +416,23 @@ const deleting = ref(false);
 const previewTarget = ref(null);
 
 // Pagination State
-const perPage = ref(10);
+// Card view uses multiples of 9 (fits the 3-column grid), table view uses 10/25/50.
+const perPageOptions = computed(() => (viewMode.value === 'card' ? [9, 18, 27, 36] : [10, 25, 50]));
+const perPage = ref(viewMode.value === 'card' ? 9 : 10);
 const pagination = ref({
     current_page: 1,
     last_page: 1,
     total: 0,
     from: 0,
     to: 0
+});
+
+// Switching view mode swaps the per-page option set and reloads from page 1.
+watch(viewMode, () => {
+    if (!perPageOptions.value.includes(perPage.value)) {
+        perPage.value = perPageOptions.value[0];
+    }
+    fetchDocuments(1);
 });
 
 const visiblePages = computed(() => {
