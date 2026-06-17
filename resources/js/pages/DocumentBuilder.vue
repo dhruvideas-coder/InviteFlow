@@ -1,9 +1,9 @@
 <template>
     <div class="flex flex-col h-full gap-6">
 
-        <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
+        <!-- Header + Step Indicator (single row on desktop) -->
+        <div class="flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-8">
+            <div class="flex items-center gap-3 shrink-0">
                 <RouterLink to="/documents" class="btn btn-secondary p-2 rounded-xl">
                     <ChevronLeft class="w-5 h-5" />
                 </RouterLink>
@@ -19,14 +19,8 @@
                 </div>
             </div>
             
-            <button v-if="currentStep === 4" @click="saveDocument('active')" class="btn btn-primary px-6 w-full sm:w-auto" :disabled="saving">
-                <Loader2 v-if="saving" class="w-4 h-4 animate-spin" />
-                <span v-else>{{ lang.t('publish_document') }}</span>
-            </button>
-        </div>
-
-        <!-- Step Indicator -->
-        <div class="flex items-center justify-center max-w-2xl mx-auto w-full px-4">
+            <!-- Step Indicator -->
+            <div class="flex items-center justify-center flex-1 max-w-2xl mx-auto w-full px-4 lg:px-0">
             <template v-for="(step, i) in steps" :key="i">
                 <div class="flex flex-col items-center relative z-10">
                     <div :class="[
@@ -50,6 +44,13 @@
                     currentStep > i + 1 ? 'bg-emerald-500' : 'bg-gray-100'
                 ]"></div>
             </template>
+            </div>
+
+            <!-- Publish (only on the final step) -->
+            <button v-if="currentStep === 4" @click="saveDocument('active')" class="btn btn-primary px-6 w-full lg:w-auto shrink-0" :disabled="saving">
+                <Loader2 v-if="saving" class="w-4 h-4 animate-spin" />
+                <span v-else>{{ lang.t('publish_document') }}</span>
+            </button>
         </div>
 
         <!-- Content Area -->
@@ -180,9 +181,28 @@
             <!-- STEP 3: Add Fields -->
             <div v-if="currentStep === 3" class="h-full flex flex-col gap-6">
                 <div class="flex flex-col lg:flex-row gap-6 h-full">
-                    
-                    <!-- Sidebar -->
-                    <div class="w-full lg:w-80 shrink-0 flex flex-col gap-4">
+
+                    <!-- Mobile backdrop (only when the drawer is open) -->
+                    <div
+                        v-if="mobileSidebarOpen"
+                        @click="mobileSidebarOpen = false"
+                        class="lg:hidden fixed inset-0 bg-black/40 z-40"
+                    ></div>
+
+                    <!-- Sidebar (slide-in drawer on mobile, static column on desktop) -->
+                    <div :class="[
+                        'shrink-0 flex flex-col gap-4',
+                        'lg:relative lg:w-80 lg:translate-x-0 lg:p-0 lg:bg-transparent lg:shadow-none lg:overflow-visible lg:z-auto',
+                        'fixed inset-y-0 left-0 z-50 w-[85%] max-w-sm bg-gray-50 p-4 overflow-y-auto overflow-x-hidden shadow-2xl transition-transform duration-300',
+                        mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                    ]">
+                        <!-- Mobile drawer close control -->
+                        <div class="lg:hidden flex justify-end">
+                            <button @click="mobileSidebarOpen = false" class="flex items-center gap-1 p-2 text-sm font-bold text-gray-500 hover:text-gray-700">
+                                <ChevronLeft class="w-5 h-5" /> {{ lang.t('close') }}
+                            </button>
+                        </div>
+
                         <div class="card p-6">
                             <h3 class="font-bold text-gray-900 mb-2">{{ lang.t('add_fields') }}</h3>
                             <p class="text-sm text-gray-500 mb-6">{{ lang.t('add_fields_desc') }}</p>
@@ -229,8 +249,8 @@
                                             <User v-if="field.field_type === 'name'" class="w-4 h-4" />
                                             <MapPin v-else class="w-4 h-4" />
                                         </div>
-                                        <input v-model="field.label" class="flex-1 bg-transparent border-none p-0 text-sm font-bold focus:ring-0 text-gray-800" />
-                                        <button @click.stop="removeField(i)" class="p-1 text-gray-300 hover:text-red-500 transition-colors">
+                                        <input v-model="field.label" class="flex-1 min-w-0 bg-transparent border-none p-0 text-sm font-bold focus:ring-0 text-gray-800" />
+                                        <button @click.stop="removeField(i)" class="shrink-0 p-1 text-gray-300 hover:text-red-500 transition-colors">
                                             <X class="w-4 h-4" />
                                         </button>
                                     </div>
@@ -342,6 +362,7 @@
                                         zIndex: 10 + i
                                     }"
                                     @mousedown.stop.prevent="startDrag($event, i)"
+                                    @touchstart.stop.prevent="startDrag($event, i)"
                                     @click.stop="selectedFieldIndex = i"
                                 >
                                     <div class="flex-1 flex items-center gap-2 px-3 overflow-hidden">
@@ -351,10 +372,14 @@
                                     </div>
 
                                     <!-- Delete Icon -->
-                                    <button 
+                                    <button
                                         @click.stop="removeField(i)"
-                                        class="absolute -top-2 -right-2 w-5 h-5 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-30"
-                                        :class="field.field_type === 'village' ? 'bg-amber-600' : 'bg-red-500'"
+                                        @touchstart.stop.prevent="removeField(i)"
+                                        class="absolute -top-2.5 -right-2.5 w-6 h-6 lg:w-5 lg:h-5 text-white rounded-full flex items-center justify-center transition-opacity shadow-md z-30"
+                                        :class="[
+                                            field.field_type === 'village' ? 'bg-amber-600' : 'bg-red-500',
+                                            selectedFieldIndex === i ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'
+                                        ]"
                                     >
                                         <X class="w-3 h-3 stroke-[3px]" />
                                     </button>
@@ -362,15 +387,26 @@
                                     <!-- Resize handle -->
                                     <div 
                                         v-if="selectedFieldIndex === i"
-                                        class="absolute -right-2 -bottom-2 w-4 h-4 rounded-full border-2 border-white shadow-md cursor-nwse-resize z-20"
+                                        class="absolute -right-2 -bottom-2 w-5 h-5 lg:w-4 lg:h-4 rounded-full border-2 border-white shadow-md cursor-nwse-resize touch-none z-20"
                                         :class="field.field_type === 'village' ? 'bg-amber-600' : 'bg-primary-600'"
                                         @mousedown.stop.prevent="startResize($event, i)"
+                                        @touchstart.stop.prevent="startResize($event, i)"
                                     ></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Mobile floating toggle to reopen the fields drawer -->
+                <button
+                    v-if="!mobileSidebarOpen"
+                    @click="mobileSidebarOpen = true"
+                    class="lg:hidden fixed bottom-6 right-6 z-40 btn btn-primary px-5 py-3 rounded-full shadow-xl flex items-center gap-2"
+                >
+                    <Plus class="w-5 h-5" />
+                    <span class="font-bold">{{ lang.t('add_fields') }}</span>
+                </button>
             </div>
 
             <!-- STEP 4: Confirm -->
@@ -521,6 +557,13 @@ const saving = ref(false);
 
 const fields = ref([]);
 const selectedFieldIndex = ref(null);
+
+// On mobile the fields panel is a slide-in drawer: open it automatically when
+// the user reaches the editor, and close it once a field is selected so the
+// document preview is visible behind it. (Ignored on desktop via lg: classes.)
+const mobileSidebarOpen = ref(false);
+watch(currentStep, (s) => { if (s === 3) mobileSidebarOpen.value = true; });
+watch(selectedFieldIndex, (v) => { if (v !== null) mobileSidebarOpen.value = false; });
 
 // Canvas/Editor Logic
 const canvasRef = ref(null);
@@ -715,37 +758,50 @@ let startFieldY = 0;
 let startFieldW = 0;
 let startFieldH = 0;
 
+// Pointer position works for both mouse and touch events.
+const getPoint = (e) => {
+    const t = e.touches?.[0] || e.changedTouches?.[0];
+    return t ? { x: t.clientX, y: t.clientY } : { x: e.clientX, y: e.clientY };
+};
+
+const addMoveListeners = () => {
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', stopDragResize);
+    window.addEventListener('touchmove', handleMouseMove, { passive: false });
+    window.addEventListener('touchend', stopDragResize);
+};
+
 const startDrag = (e, index) => {
     isDragging = true;
     selectedFieldIndex.value = index;
     const field = fields.value[index];
-    startX = e.clientX;
-    startY = e.clientY;
+    const p = getPoint(e);
+    startX = p.x;
+    startY = p.y;
     startFieldX = field.x_percent;
     startFieldY = field.y_percent;
-    
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', stopDragResize);
+    addMoveListeners();
 };
 
 const startResize = (e, index) => {
     isResizing = true;
     selectedFieldIndex.value = index;
     const field = fields.value[index];
-    startX = e.clientX;
-    startY = e.clientY;
+    const p = getPoint(e);
+    startX = p.x;
+    startY = p.y;
     startFieldW = field.width_percent;
     startFieldH = field.height_percent;
-    
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', stopDragResize);
+    addMoveListeners();
 };
 
 const handleMouseMove = (e) => {
     if (!isDragging && !isResizing) return;
-    
-    const dx = ((e.clientX - startX) / canvasW.value) * 100;
-    const dy = ((e.clientY - startY) / canvasH.value) * 100;
+    if (e.cancelable) e.preventDefault(); // keep the page from scrolling mid-drag on touch
+
+    const p = getPoint(e);
+    const dx = ((p.x - startX) / canvasW.value) * 100;
+    const dy = ((p.y - startY) / canvasH.value) * 100;
     const field = fields.value[selectedFieldIndex.value];
 
     if (isDragging) {
@@ -762,6 +818,8 @@ const stopDragResize = () => {
     isResizing = false;
     window.removeEventListener('mousemove', handleMouseMove);
     window.removeEventListener('mouseup', stopDragResize);
+    window.removeEventListener('touchmove', handleMouseMove);
+    window.removeEventListener('touchend', stopDragResize);
 };
 
 const step2ContainerRef = ref(null);
