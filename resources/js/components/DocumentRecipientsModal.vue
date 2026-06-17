@@ -459,6 +459,9 @@ import axios from 'axios';
 import PdfCanvas from '@/components/PdfCanvas.vue';
 import { useLanguageStore } from '@/stores/language';
 import { formatMobile } from '@/utils/format';
+import { useMessageTemplate } from '@/composables/useMessageTemplate';
+
+const { buildMessage } = useMessageTemplate();
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -598,8 +601,8 @@ async function sendWhatsApp(recipient) {
             via:          'WhatsApp',
         });
         const doc  = props.document;
-        const name = doc.language === 'gu' ? recipient.name_gu || recipient.name_en : recipient.name_en;
-        const msg  = encodeURIComponent(`Hello ${name},\n\nYou are cordially invited: *${doc.name}*.\n\n${window.location.origin}/doc/view/${data.token}\n\nRegards,\nInviteFlow`);
+        const link = `${window.location.origin}/doc/view/${data.token}`;
+        const msg  = encodeURIComponent(await buildMessage(recipient, doc, link));
         window.open(`https://wa.me/${recipient.mobile.replace(/\D/g, '')}?text=${msg}`, '_blank');
         const idx = recipients.value.findIndex(r => r.id === recipient.id);
         if (idx !== -1) {

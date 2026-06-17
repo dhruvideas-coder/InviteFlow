@@ -963,10 +963,12 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { formatMobile } from '@/utils/format';
 import { useViewMode } from '@/composables/useViewMode';
+import { useMessageTemplate } from '@/composables/useMessageTemplate';
 import ViewToggle from '@/components/ViewToggle.vue';
 
 const lang = useLanguageStore();
 const { viewMode } = useViewMode('recipients');
+const { buildMessage } = useMessageTemplate();
 
 const search = ref('');
 const villageFilter = ref('');
@@ -1635,17 +1637,10 @@ async function generateAndSend() {
         });
 
         const token = data.token;
-        const name = selectedDoc.value.language === 'gu' ? selectedRecipient.value.name_gu : selectedRecipient.value.name_en;
-        
-        const message = encodeURIComponent(
-            `Hello ${name},\n\n` +
-            `You are cordially invited to our event: *${selectedDoc.value.name}*.\n\n` +
-            `Please check your personalized invitation and details here:\n` +
-            `${window.location.origin}/doc/view/${token}\n\n` +
-            `You can also download your invitation PDF from the link above.\n\n` +
-            `Regards,\nInviteFlow`
-        );
-        
+        const link = `${window.location.origin}/doc/view/${token}`;
+        const body = await buildMessage(selectedRecipient.value, selectedDoc.value, link);
+        const message = encodeURIComponent(body);
+
         const mobile = selectedRecipient.value.mobile.replace(/\D/g, '');
         const whatsappUrl = `https://wa.me/${mobile}?text=${message}`;
         

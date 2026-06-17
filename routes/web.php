@@ -37,6 +37,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/dashboard', [AnalyticsController::class, 'dashboard']);
     Route::get('/api/analytics', [AnalyticsController::class, 'analytics']);
 
+    Route::get('/api/message-templates', [\App\Http\Controllers\Api\MessageTemplateController::class, 'index']);
+    Route::put('/api/message-templates', [\App\Http\Controllers\Api\MessageTemplateController::class, 'update']);
+
     Route::get('/api/invitation-links', [\App\Http\Controllers\Api\InvitationLinkController::class, 'index']);
     Route::post('/api/invitation-links', [\App\Http\Controllers\Api\InvitationLinkController::class, 'store']);
     Route::delete('/api/invitation-links/{link}', [\App\Http\Controllers\Api\InvitationLinkController::class, 'destroy']);

@@ -271,7 +271,17 @@ export const useLanguageStore = defineStore('language', () => {
             add_to_document: 'Add {count} to Document',
             send_whatsapp_to_link: 'Send a WhatsApp invitation to link recipients to this document.',
             table_view: 'Table View',
-            card_view: 'Card View'
+            card_view: 'Card View',
+            whatsapp_template_subtitle: 'Customize the WhatsApp message sent to recipients, per language.',
+            insert_token: 'Insert at cursor',
+            template_placeholder: 'Hello {name},\n\nYou are invited to {document}.\nView your invitation: {link}',
+            token_name: 'Name',
+            token_village: 'Village',
+            token_document: 'Document',
+            token_link: 'Link',
+            link_token_hint: 'Tip: {name}, {village} and {document} are optional. The {link} placeholder is required so the invitation link is always included.',
+            link_token_required: 'Both messages must include the {link} placeholder.',
+            saved: 'Saved'
         },
         gu: {
             dashboard: 'ડેશબોર્ડ',
@@ -526,7 +536,17 @@ export const useLanguageStore = defineStore('language', () => {
             add_to_document: '{count} દસ્તાવેજમાં ઉમેરો',
             send_whatsapp_to_link: 'લેનારાઓને આ દસ્તાવેજ સાથে જોડવા WhatsApp આમંત્રણ મોકલો.',
             table_view: 'ટેબલ વ્યૂ',
-            card_view: 'કાર્ડ વ્યૂ'
+            card_view: 'કાર્ડ વ્યૂ',
+            whatsapp_template_subtitle: 'લેનારાઓને મોકલાતો WhatsApp સંદેશ ભાષા પ્રમાણે કસ્ટમાઇઝ કરો.',
+            insert_token: 'કર્સર પર ઉમેરો',
+            template_placeholder: 'નમસ્તે {name},\n\nઆપને {document} માટે આમંત્રણ છે.\nઆમંત્રણ જુઓ: {link}',
+            token_name: 'નામ',
+            token_village: 'ગામ',
+            token_document: 'દસ્તાવેજ',
+            token_link: 'લિંક',
+            link_token_hint: 'સૂચન: {name}, {village} અને {document} વૈકલ્પિક છે. {link} પ્લેસહોલ્ડર જરૂરી છે જેથી આમંત્રણ લિંક હંમેશા સામેલ રહે.',
+            link_token_required: 'બંને સંદેશમાં {link} પ્લેસહોલ્ડર હોવું જરૂરી છે.',
+            saved: 'સાચવ્યું'
         }
     });
 
