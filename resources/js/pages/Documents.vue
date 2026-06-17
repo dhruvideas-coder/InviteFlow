@@ -15,23 +15,35 @@
             </div>
         </div>
 
-        <!-- Summary Stats -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="card p-5 border-l-4 border-primary-500">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ lang.t('total_documents') }}</p>
-                <h3 class="text-2xl font-black text-gray-900">{{ pagination.total }}</h3>
+        <!-- Summary Stats (compact strip) -->
+        <div class="flex items-stretch bg-white rounded-2xl border border-gray-100 shadow-sm divide-x divide-gray-100 overflow-hidden">
+            <div class="flex-1 flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 min-w-0">
+                <span class="w-1 sm:w-1.5 h-7 sm:h-8 rounded-full bg-primary-500 shrink-0"></span>
+                <div class="min-w-0 leading-tight">
+                    <h3 class="text-base sm:text-xl font-black text-gray-900">{{ pagination.total }}</h3>
+                    <p class="text-[10px] sm:text-xs font-medium text-gray-500 truncate">{{ lang.t('total_documents') }}</p>
+                </div>
             </div>
-            <div class="card p-5 border-l-4 border-amber-400">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ lang.t('in_progress') }}</p>
-                <h3 class="text-2xl font-black text-gray-900">{{ documents.filter(d => d.status === 'active').length }}</h3>
+            <div class="flex-1 flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 min-w-0">
+                <span class="w-1 sm:w-1.5 h-7 sm:h-8 rounded-full bg-amber-400 shrink-0"></span>
+                <div class="min-w-0 leading-tight">
+                    <h3 class="text-base sm:text-xl font-black text-gray-900">{{ documents.filter(d => d.status === 'active').length }}</h3>
+                    <p class="text-[10px] sm:text-xs font-medium text-gray-500 truncate">{{ lang.t('in_progress') }}</p>
+                </div>
             </div>
-            <div class="card p-5 border-l-4 border-emerald-500">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ lang.t('completed') }}</p>
-                <h3 class="text-2xl font-black text-gray-900">{{ documents.filter(d => d.status === 'completed').length }}</h3>
+            <div class="flex-1 flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 min-w-0">
+                <span class="w-1 sm:w-1.5 h-7 sm:h-8 rounded-full bg-emerald-500 shrink-0"></span>
+                <div class="min-w-0 leading-tight">
+                    <h3 class="text-base sm:text-xl font-black text-gray-900">{{ documents.filter(d => d.status === 'completed').length }}</h3>
+                    <p class="text-[10px] sm:text-xs font-medium text-gray-500 truncate">{{ lang.t('completed') }}</p>
+                </div>
             </div>
-            <div class="card p-5 border-l-4 border-slate-300">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ lang.t('drafts') }}</p>
-                <h3 class="text-2xl font-black text-gray-900">{{ documents.filter(d => d.status === 'draft').length }}</h3>
+            <div class="flex-1 flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 min-w-0">
+                <span class="w-1 sm:w-1.5 h-7 sm:h-8 rounded-full bg-slate-300 shrink-0"></span>
+                <div class="min-w-0 leading-tight">
+                    <h3 class="text-base sm:text-xl font-black text-gray-900">{{ documents.filter(d => d.status === 'draft').length }}</h3>
+                    <p class="text-[10px] sm:text-xs font-medium text-gray-500 truncate">{{ lang.t('drafts') }}</p>
+                </div>
             </div>
         </div>
 

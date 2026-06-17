@@ -70,13 +70,6 @@
                             <label class="label">{{ lang.t('description') }} <span class="text-gray-400 font-normal">({{ lang.t('optional') }})</span></label>
                             <textarea v-model="form.description" class="input min-h-[120px] py-3 resize-none" :placeholder="lang.t('description_placeholder')"></textarea>
                         </div>
-                        <div class="form-group">
-                            <label class="label">{{ lang.t('language_selection') }}</label>
-                            <div class="flex items-center gap-2 px-4 py-3 rounded-xl bg-primary-50/50 border border-primary-100">
-                                <Sparkles class="w-4 h-4 text-primary-500 shrink-0" />
-                                <p class="text-xs text-primary-700 font-medium">Language is detected automatically from the document you upload in the next step.</p>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="mt-10 flex justify-end">
