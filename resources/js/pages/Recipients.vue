@@ -136,8 +136,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                     </svg>
                                 </button>
-                                <button 
-                                    @click="deleteRecipient(r.id)"
+                                <button
+                                    @click="confirmDelete(r)"
                                     class="btn btn-ghost btn-sm text-red-400 hover:text-red-500 hover:bg-red-50" title="Delete"
                                 >
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -186,7 +186,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                 </svg>
                             </button>
-                            <button @click="deleteRecipient(r.id)" class="btn btn-ghost btn-sm text-red-400 hover:text-red-500 hover:bg-red-50" title="Delete">
+                            <button @click="confirmDelete(r)" class="btn btn-ghost btn-sm text-red-400 hover:text-red-500 hover:bg-red-50" title="Delete">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
@@ -250,6 +250,74 @@
                 </div>
             </div>
         <!-- /Bulk actions & Pagination -->
+
+        <!-- Delete Recipient Modal -->
+        <Teleport to="body">
+            <Transition name="modal">
+                <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
+                    <div class="modal max-w-sm">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900">{{ lang.t('delete_recipient') }}</h3>
+                                <p class="text-xs text-gray-500">{{ lang.t('action_cannot_undone') }}</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-6 leading-relaxed">
+                            Are you sure you want to delete <span class="font-semibold text-gray-900">{{ lang.currentLocale === 'gu' ? deleteTarget.name_gu || deleteTarget.name_en : deleteTarget.name_en }}</span>? All associated data will be removed.
+                        </p>
+                        <div class="flex gap-3 justify-end">
+                            <button @click="deleteTarget = null" class="btn btn-secondary" :disabled="deleting">{{ lang.t('cancel') }}</button>
+                            <button @click="deleteRecipient" class="btn btn-danger" :disabled="deleting">
+                                <svg v-if="deleting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                                <span v-else>{{ lang.t('delete_recipient') }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
+        <!-- Bulk Delete Recipients Modal -->
+        <Teleport to="body">
+            <Transition name="modal">
+                <div v-if="showBulkDeleteModal" class="modal-overlay" @click.self="showBulkDeleteModal = false">
+                    <div class="modal max-w-sm">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900">{{ lang.t('delete_recipients') }}</h3>
+                                <p class="text-xs text-gray-500">{{ lang.t('action_cannot_undone') }}</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-6 leading-relaxed">
+                            Are you sure you want to delete <span class="font-semibold text-gray-900">{{ selected.length }}</span> selected recipients? All associated data will be removed.
+                        </p>
+                        <div class="flex gap-3 justify-end">
+                            <button @click="showBulkDeleteModal = false" class="btn btn-secondary" :disabled="deleting">{{ lang.t('cancel') }}</button>
+                            <button @click="confirmBulkDelete" class="btn btn-danger" :disabled="deleting">
+                                <svg v-if="deleting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                                <span v-else>{{ lang.t('delete_recipients') }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
 
         <!-- Add/Edit Recipient Modal -->
         <Teleport to="body">
@@ -975,6 +1043,9 @@ const villageFilter = ref('');
 const selected = ref([]);
 const showAddModal = ref(false);
 const showCsvModal = ref(false);
+const deleteTarget = ref(null);
+const showBulkDeleteModal = ref(false);
+const deleting = ref(false);
 
 // Pagination State
 // Card view uses multiples of 9 (fits the 3-column grid), table view uses 10/25/50/100.
@@ -1572,27 +1643,43 @@ async function saveRecipient() {
     }
 }
 
-async function deleteRecipient(id) {
-    if (!confirm('Are you sure you want to delete this recipient?')) return;
+function confirmDelete(recipient) {
+    deleteTarget.value = recipient;
+}
+
+async function deleteRecipient() {
+    if (!deleteTarget.value) return;
+    deleting.value = true;
     try {
-        await axios.delete(`/api/recipients/${id}`);
-        recipients.value = recipients.value.filter(r => r.id !== id);
+        await axios.delete(`/api/recipients/${deleteTarget.value.id}`);
+        recipients.value = recipients.value.filter(r => r.id !== deleteTarget.value.id);
+        selected.value = selected.value.filter(id => id !== deleteTarget.value.id);
+        deleteTarget.value = null;
     } catch (err) {
         console.error('Failed to delete recipient:', err);
+    } finally {
+        deleting.value = false;
     }
 }
 
-async function bulkDelete() {
+function bulkDelete() {
     if (!selected.value.length) return;
-    if (!confirm(`Are you sure you want to delete ${selected.value.length} selected recipients?`)) return;
-    
+    showBulkDeleteModal.value = true;
+}
+
+async function confirmBulkDelete() {
+    if (!selected.value.length) return;
+    deleting.value = true;
     try {
         await Promise.all(selected.value.map(id => axios.delete(`/api/recipients/${id}`)));
         // Refresh current page
         await fetchRecipients(pagination.value.current_page);
         selected.value = [];
+        showBulkDeleteModal.value = false;
     } catch (err) {
         console.error('Failed to delete recipients:', err);
+    } finally {
+        deleting.value = false;
     }
 }
 
