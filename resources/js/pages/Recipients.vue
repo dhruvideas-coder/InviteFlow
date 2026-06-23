@@ -100,7 +100,6 @@
                         <th>{{ lang.t('phone') }}</th>
                         <th>{{ lang.t('village') }}</th>
                         <th v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell">Village (Gujarati)</th>
-                        <th>{{ lang.t('status') }}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -118,14 +117,9 @@
                             </div>
                         </td>
                         <td v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell text-gray-700" style="font-family: serif;">{{ r.name_gu }}</td>
-                        <td class="text-gray-600 font-mono text-xs">{{ formatMobile(r.mobile) }}</td>
+                        <td class="text-gray-600 font-mono text-xs whitespace-nowrap">{{ formatMobile(r.mobile) }}</td>
                         <td><span class="tag">{{ lang.currentLocale === 'gu' ? r.village_gu || r.village_en : r.village_en }}</span></td>
                         <td v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell text-gray-700" style="font-family: serif;">{{ r.village_gu }}</td>
-                        <td>
-                            <span :class="['badge text-xs', r.sent ? 'badge-green' : 'badge-gray']">
-                                {{ r.sent ? lang.t('sent') : lang.t('pending') }}
-                            </span>
-                        </td>
                         <td>
                             <div class="flex items-center gap-1 justify-end">
                                 <button
@@ -171,11 +165,8 @@
                         <div class="min-w-0 flex-1">
                             <p class="font-semibold text-gray-900 truncate">{{ lang.currentLocale === 'gu' ? r.name_gu || r.name_en : r.name_en }}</p>
                             <p v-if="lang.currentLocale === 'en' && r.name_gu" class="text-xs text-gray-500 truncate" style="font-family: serif;">{{ r.name_gu }}</p>
-                            <p class="text-gray-600 font-mono text-xs mt-0.5">{{ formatMobile(r.mobile) }}</p>
+                            <p class="text-gray-600 font-mono text-xs mt-0.5 whitespace-nowrap">{{ formatMobile(r.mobile) }}</p>
                         </div>
-                        <span :class="['badge text-xs shrink-0', r.sent ? 'badge-green' : 'badge-gray']">
-                            {{ r.sent ? lang.t('sent') : lang.t('pending') }}
-                        </span>
                     </div>
 
                     <div class="flex items-center justify-between gap-2 pt-3 mt-auto border-t border-gray-50">

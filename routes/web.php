@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/api/invitation-links', [\App\Http\Controllers\Api\InvitationLinkController::class, 'index']);
     Route::post('/api/invitation-links', [\App\Http\Controllers\Api\InvitationLinkController::class, 'store']);
+    Route::post('/api/invitation-links/{link}/confirm', [\App\Http\Controllers\Api\InvitationLinkController::class, 'confirm']);
     Route::delete('/api/invitation-links/{link}', [\App\Http\Controllers\Api\InvitationLinkController::class, 'destroy']);
 });
 

@@ -11,12 +11,14 @@ class InvitationLink extends Model
         'document_id',
         'token',
         'via',
+        'confirmed_at',
         'created_by_user_id',
         'expires_at',
     ];
 
     protected $casts = [
-        'expires_at' => 'datetime',
+        'expires_at'   => 'datetime',
+        'confirmed_at' => 'datetime',
     ];
 
     public function recipient()

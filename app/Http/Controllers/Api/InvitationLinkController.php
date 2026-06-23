@@ -13,9 +13,9 @@ use Illuminate\Support\Str;
 class InvitationLinkController extends Controller
 {
     /**
-     * Maximum number of WhatsApp invitations a single user may send within
-     * any rolling 24-hour window. Other delivery methods (e.g. plain links)
-     * are not counted against this cap.
+     * Maximum number of WhatsApp invitations a single user may *confirm* as
+     * sent within any rolling 24-hour window. Other delivery methods (e.g.
+     * plain links) are not counted against this cap.
      */
     public const WHATSAPP_DAILY_LIMIT = 50;
 
@@ -44,6 +44,11 @@ class InvitationLinkController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * WhatsApp links are created in a "pending" state (confirmed_at = null):
+     * they do not count toward the daily limit and the recipient is not marked
+     * as sent until the sender confirms the message actually went out. Other
+     * delivery methods are confirmed immediately.
      */
     public function store(Request $request)
     {
@@ -54,9 +59,10 @@ class InvitationLinkController extends Controller
         ]);
 
         $user = $request->user();
-        $isWhatsApp = ($request->via ?? 'WhatsApp') === 'WhatsApp';
+        $via = $request->via ?? 'WhatsApp';
+        $isWhatsApp = $via === 'WhatsApp';
 
-        // Enforce the per-user daily WhatsApp sending limit (rolling 24h).
+        // Guard the per-user daily WhatsApp cap before handing out a new link.
         if ($isWhatsApp && $user) {
             $quota = $this->whatsappQuota($user);
             if ($quota['reached']) {
@@ -68,29 +74,70 @@ class InvitationLinkController extends Controller
             }
         }
 
-        $token = Str::random(10);
-
         $link = InvitationLink::create([
             'recipient_id'       => $request->recipient_id,
             'document_id'        => $request->document_id,
-            'token'              => $token,
-            'via'                => $request->via ?? 'WhatsApp',
+            'token'              => Str::random(10),
+            'via'                => $via,
+            // WhatsApp starts pending; everything else is immediately active.
+            'confirmed_at'       => $isWhatsApp ? null : now(),
             'created_by_user_id' => $user?->id,
             'expires_at'         => null,
         ]);
 
-        // Also mark recipient as sent
-        Recipient::where('id', '=', $request->recipient_id)->update(['sent' => true]);
+        // Non-WhatsApp links mark the recipient as sent right away. WhatsApp
+        // waits for an explicit "Sent" confirmation (see confirm()).
+        if (!$isWhatsApp) {
+            Recipient::where('id', '=', $request->recipient_id)->update(['sent' => true]);
+        }
 
         $payload = $link->load(['recipient', 'document'])->toArray();
 
-        // Surface the updated quota so the UI can hide send buttons once the
-        // cap is reached, without a second round-trip.
         if ($user) {
             $payload['whatsapp_quota'] = $this->whatsappQuota($user);
         }
 
         return response()->json($payload, 201);
+    }
+
+    /**
+     * Confirm that a pending WhatsApp invitation was actually sent. Only then
+     * does it count toward the daily limit and mark the recipient as sent.
+     */
+    public function confirm(Request $request, InvitationLink $link)
+    {
+        $user = $request->user();
+
+        // Already confirmed — nothing to do, just echo current state.
+        if ($link->confirmed_at) {
+            return response()->json(array_merge(
+                $link->load(['recipient', 'document'])->toArray(),
+                ['whatsapp_quota' => $user ? $this->whatsappQuota($user) : null],
+            ));
+        }
+
+        // Re-check the cap at confirm time: a user could have opened several
+        // chats before confirming any of them.
+        if ($user) {
+            $quota = $this->whatsappQuota($user);
+            if ($quota['reached']) {
+                return response()->json([
+                    'message'        => 'Daily WhatsApp limit reached. You can send up to '
+                        . self::WHATSAPP_DAILY_LIMIT . ' invitations every 24 hours.',
+                    'whatsapp_quota' => $quota,
+                ], 429);
+            }
+        }
+
+        $link->update(['confirmed_at' => now()]);
+        Recipient::where('id', '=', $link->recipient_id)->update(['sent' => true]);
+
+        $payload = $link->load(['recipient', 'document'])->toArray();
+        if ($user) {
+            $payload['whatsapp_quota'] = $this->whatsappQuota($user);
+        }
+
+        return response()->json($payload);
     }
 
     /**
@@ -103,24 +150,25 @@ class InvitationLinkController extends Controller
 
     /**
      * Build a snapshot of how many WhatsApp invitations the given user has
-     * sent in the last 24 hours and how many remain.
+     * *confirmed as sent* in the last 24 hours and how many remain.
      */
     private function whatsappQuota(User $user): array
     {
         $base = InvitationLink::where('created_by_user_id', $user->id)
             ->where('via', 'WhatsApp')
-            ->where('created_at', '>=', now()->subDay());
+            ->whereNotNull('confirmed_at')
+            ->where('confirmed_at', '>=', now()->subDay());
 
         $limit     = self::WHATSAPP_DAILY_LIMIT;
         $used      = (clone $base)->count();
         $remaining = max(0, $limit - $used);
         $reached   = $used >= $limit;
 
-        // Once the cap is hit, a slot frees up 24h after the oldest send that
-        // is still inside the current window.
+        // Once the cap is hit, a slot frees up 24h after the oldest confirmed
+        // send still inside the current window.
         $resetsAt = null;
         if ($reached) {
-            $oldest = (clone $base)->orderBy('created_at')->value('created_at');
+            $oldest = (clone $base)->orderBy('confirmed_at')->value('confirmed_at');
             $resetsAt = $oldest ? Carbon::parse($oldest)->addDay()->toIso8601String() : null;
         }
 
@@ -144,7 +192,8 @@ class InvitationLinkController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified resource from storage. Used by the "Not Sent"
+     * action to discard a pending WhatsApp link the user never actually sent.
      */
     public function destroy(string $id)
     {

@@ -292,6 +292,12 @@ export const useLanguageStore = defineStore('language', () => {
             whatsapp_limit_reached_title: 'Daily WhatsApp limit reached',
             whatsapp_limit_reached_msg: 'You have sent all {limit} WhatsApp invitations allowed in a 24-hour period. Sending buttons are hidden until your limit resets.',
             whatsapp_limit_resets: 'Sending resumes around {time}',
+            btn_sent: 'Sent',
+            btn_not_sent: 'Not Sent',
+            confirm_sent_hint: 'Confirm you actually sent this WhatsApp message',
+            confirm_not_sent_hint: 'You did not send it — bring back the send options',
+            whatsapp_already_sent: 'Already sent on WhatsApp',
+            whatsapp_sent_toast: 'Sent ✓ — {used} of {limit} used today',
             saved: 'Saved'
         },
         gu: {
@@ -568,6 +574,12 @@ export const useLanguageStore = defineStore('language', () => {
             whatsapp_limit_reached_title: 'દૈનિક WhatsApp મર્યાદા પૂર્ણ થઈ',
             whatsapp_limit_reached_msg: 'આપે 24 કલાકના સમયગાળામાં મંજૂર તમામ {limit} WhatsApp આમંત્રણ મોકલી દીધા છે. મર્યાદા રીસેટ થાય ત્યાં સુધી મોકલવાના બટન છુપાવેલ છે.',
             whatsapp_limit_resets: '{time} આસપાસ મોકલવાનું ફરી શરૂ થશે',
+            btn_sent: 'મોકલ્યું',
+            btn_not_sent: 'મોકલ્યું નથી',
+            confirm_sent_hint: 'આ WhatsApp સંદેશ ખરેખર મોકલ્યો છે તેની પુષ્ટિ કરો',
+            confirm_not_sent_hint: 'આપે મોકલ્યું નથી — મોકલવાના વિકલ્પો ફરી બતાવો',
+            whatsapp_already_sent: 'WhatsApp પર પહેલેથી મોકલ્યું',
+            whatsapp_sent_toast: 'મોકલ્યું ✓ — આજે {limit} માંથી {used} વપરાયા',
             saved: 'સાચવ્યું'
         }
     });
