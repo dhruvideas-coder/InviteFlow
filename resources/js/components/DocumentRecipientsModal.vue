@@ -87,7 +87,7 @@
                             <div class="min-w-0">
                                 <p class="text-sm font-bold text-amber-900">{{ lang.t('whatsapp_limit_reached_title') }}</p>
                                 <p class="text-xs text-amber-700 mt-0.5">{{ lang.t('whatsapp_limit_reached_msg', { limit: quota.limit }) }}</p>
-                                <p v-if="quota.resets_at" class="text-xs font-medium text-amber-800 mt-1">{{ lang.t('whatsapp_limit_resets', { time: formatResetTime(quota.resets_at) }) }}</p>
+                                <p v-if="quota.resets_at" class="text-xs font-medium text-amber-800 mt-1">{{ lang.t('whatsapp_limit_resets', { countdown: countdownText(lang.t), time: formatResetTime(quota.resets_at) }) }}</p>
                             </div>
                         </div>
 
@@ -120,10 +120,8 @@
                                     <thead>
                                         <tr>
                                             <th>{{ lang.t('name') }}</th>
-                                            <th v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell">Name (Gujarati)</th>
                                             <th>{{ lang.t('phone') }}</th>
                                             <th>{{ lang.t('village') }}</th>
-                                            <th v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell">Village (Gujarati)</th>
                                             <th>{{ lang.t('selected_by') }}</th>
                                             <th class="text-right">{{ lang.t('actions') }}</th>
                                         </tr>
@@ -149,15 +147,13 @@
                                                     <span class="font-medium text-gray-900">{{ lang.currentLocale === 'gu' ? r.name_gu || r.name_en : r.name_en }}</span>
                                                 </div>
                                             </td>
-                                            <td v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell text-gray-700" style="font-family:serif">{{ r.name_gu }}</td>
                                             <td class="text-gray-600 font-mono text-xs whitespace-nowrap">{{ formatMobile(r.mobile) }}</td>
                                             <td><span class="tag">{{ lang.currentLocale === 'gu' ? r.village_gu || r.village_en : r.village_en }}</span></td>
-                                            <td v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell text-gray-700" style="font-family: serif;">{{ r.village_gu }}</td>
                                             <td>
                                                 <template v-if="getSelector(r)">
                                                     <div class="flex flex-col gap-1 min-w-[90px]">
                                                         <span class="text-xs font-medium text-gray-800 truncate max-w-[120px]">{{ getSelector(r).name }}</span>
-                                                        <span :class="['badge text-[9px] self-start', roleBadgeClass(getSelector(r).role)]">
+                                                        <span v-if="showSelectorRole(getSelector(r))" :class="['badge text-[9px] self-start', roleBadgeClass(getSelector(r).role)]">
                                                             {{ lang.t(getSelector(r).role) }}
                                                         </span>
                                                     </div>
@@ -504,7 +500,7 @@ import { useMessageTemplate } from '@/composables/useMessageTemplate';
 import { useWhatsappQuota } from '@/composables/useWhatsappQuota';
 
 const { buildMessage } = useMessageTemplate();
-const { quota, blocked, fetchQuota, setQuota } = useWhatsappQuota();
+const { quota, blocked, fetchQuota, setQuota, countdownText } = useWhatsappQuota();
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -804,6 +800,19 @@ function roleBadgeClass(role) {
     if (role === 'super_admin') return 'badge-amber';
     if (role === 'admin')       return 'badge-primary';
     return 'badge-green';
+}
+
+// Hide the role badge when it just repeats the selector's name (e.g. a user
+// literally named "admin" / "member"). Compare against both the raw role key
+// and its translation so it stays hidden in every language.
+function showSelectorRole(selector) {
+    const name = (selector.name || '').trim().toLowerCase();
+    if (!name) return false;
+    const rawRole   = (selector.role || '').trim().toLowerCase();
+    const transRole = (lang.t(selector.role) || '').trim().toLowerCase();
+    return name !== rawRole
+        && name !== rawRole.replace(/_/g, ' ')
+        && name !== transRole;
 }
 
 // ── Open / Close ───────────────────────────────────────────────────────

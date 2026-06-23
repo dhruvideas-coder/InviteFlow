@@ -96,10 +96,8 @@
                             <input type="checkbox" class="rounded" @change="toggleAll" />
                         </th>
                         <th>{{ lang.t('name') }}</th>
-                        <th v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell">Name (Gujarati)</th>
                         <th>{{ lang.t('phone') }}</th>
                         <th>{{ lang.t('village') }}</th>
-                        <th v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell">Village (Gujarati)</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -116,10 +114,8 @@
                                 <span class="font-medium text-gray-900">{{ lang.currentLocale === 'gu' ? r.name_gu || r.name_en : r.name_en }}</span>
                             </div>
                         </td>
-                        <td v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell text-gray-700" style="font-family: serif;">{{ r.name_gu }}</td>
                         <td class="text-gray-600 font-mono text-xs whitespace-nowrap">{{ formatMobile(r.mobile) }}</td>
                         <td><span class="tag">{{ lang.currentLocale === 'gu' ? r.village_gu || r.village_en : r.village_en }}</span></td>
-                        <td v-if="lang.currentLocale === 'en'" class="hidden sm:table-cell text-gray-700" style="font-family: serif;">{{ r.village_gu }}</td>
                         <td>
                             <div class="flex items-center gap-1 justify-end">
                                 <button
@@ -164,7 +160,6 @@
                         </div>
                         <div class="min-w-0 flex-1">
                             <p class="font-semibold text-gray-900 truncate">{{ lang.currentLocale === 'gu' ? r.name_gu || r.name_en : r.name_en }}</p>
-                            <p v-if="lang.currentLocale === 'en' && r.name_gu" class="text-xs text-gray-500 truncate" style="font-family: serif;">{{ r.name_gu }}</p>
                             <p class="text-gray-600 font-mono text-xs mt-0.5 whitespace-nowrap">{{ formatMobile(r.mobile) }}</p>
                         </div>
                     </div>
@@ -570,7 +565,7 @@
                             <div class="min-w-0">
                                 <p class="text-sm font-bold text-amber-900">{{ lang.t('whatsapp_limit_reached_title') }}</p>
                                 <p class="text-xs text-amber-700 mt-0.5">{{ lang.t('whatsapp_limit_reached_msg', { limit: quota.limit }) }}</p>
-                                <p v-if="quota.resets_at" class="text-xs font-medium text-amber-800 mt-1">{{ lang.t('whatsapp_limit_resets', { time: formatResetTime(quota.resets_at) }) }}</p>
+                                <p v-if="quota.resets_at" class="text-xs font-medium text-amber-800 mt-1">{{ lang.t('whatsapp_limit_resets', { countdown: countdownText(lang.t), time: formatResetTime(quota.resets_at) }) }}</p>
                             </div>
                         </div>
 
@@ -1040,7 +1035,7 @@ import ViewToggle from '@/components/ViewToggle.vue';
 const lang = useLanguageStore();
 const { viewMode } = useViewMode('recipients');
 const { buildMessage } = useMessageTemplate();
-const { quota, blocked, fetchQuota, setQuota } = useWhatsappQuota();
+const { quota, blocked, fetchQuota, setQuota, countdownText } = useWhatsappQuota();
 
 function formatResetTime(iso) {
     if (!iso) return '';

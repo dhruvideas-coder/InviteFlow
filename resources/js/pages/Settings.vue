@@ -118,7 +118,7 @@
                 <div class="min-w-0">
                     <p class="text-sm font-bold text-amber-900">{{ lang.t('whatsapp_limit_reached_title') }}</p>
                     <p class="text-xs text-amber-700 mt-0.5">{{ lang.t('whatsapp_limit_reached_msg', { limit: quota.limit }) }}</p>
-                    <p v-if="quota.resets_at" class="text-xs font-medium text-amber-800 mt-1">{{ lang.t('whatsapp_limit_resets', { time: formatResetTime(quota.resets_at) }) }}</p>
+                    <p v-if="quota.resets_at" class="text-xs font-medium text-amber-800 mt-1">{{ lang.t('whatsapp_limit_resets', { countdown: countdownText(lang.t), time: formatResetTime(quota.resets_at) }) }}</p>
                 </div>
             </div>
         </div>
@@ -212,7 +212,7 @@ import { useWhatsappQuota } from '@/composables/useWhatsappQuota';
 const auth = useAuthStore();
 const lang = useLanguageStore();
 const { loadTemplates, saveTemplates } = useMessageTemplate();
-const { quota, fetchQuota } = useWhatsappQuota();
+const { quota, fetchQuota, countdownText } = useWhatsappQuota();
 
 function formatResetTime(iso) {
     if (!iso) return '';
