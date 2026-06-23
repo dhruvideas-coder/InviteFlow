@@ -319,7 +319,15 @@ export const useLanguageStore = defineStore('language', () => {
             confirm_not_sent_hint: 'You did not send it — bring back the send options',
             whatsapp_already_sent: 'Already sent on WhatsApp',
             whatsapp_sent_toast: 'Sent ✓ — {used} of {limit} used today',
-            saved: 'Saved'
+            saved: 'Saved',
+            host_profile_title: 'Host / Organizer',
+            host_profile_subtitle: 'Set once — this photo and name appear at the top of every invitation you share.',
+            upload_host_image: 'Upload Image',
+            remove: 'Remove',
+            host_image_hint: 'Square image works best (PNG, JPG or WEBP, up to 4MB).',
+            host_name_en_label: 'Host Name (English)',
+            host_name_gu_label: 'Host Name (Gujarati)',
+            host_name_placeholder: 'e.g. Patel Family'
         },
         gu: {
             dashboard: 'ડેશબોર્ડ',
@@ -622,7 +630,15 @@ export const useLanguageStore = defineStore('language', () => {
             confirm_not_sent_hint: 'આપે મોકલ્યું નથી — મોકલવાના વિકલ્પો ફરી બતાવો',
             whatsapp_already_sent: 'WhatsApp પર પહેલેથી મોકલ્યું',
             whatsapp_sent_toast: 'મોકલ્યું ✓ — આજે {limit} માંથી {used} વપરાયા',
-            saved: 'સાચવ્યું'
+            saved: 'સાચવ્યું',
+            host_profile_title: 'યજમાન / આયોજક',
+            host_profile_subtitle: 'એકવાર સેટ કરો — આ ફોટો અને નામ તમે શેર કરો છો તે દરેક આમંત્રણની ઉપર દેખાશે.',
+            upload_host_image: 'છબી અપલોડ કરો',
+            remove: 'દૂર કરો',
+            host_image_hint: 'ચોરસ છબી શ્રેષ્ઠ રહે છે (PNG, JPG અથવા WEBP, 4MB સુધી).',
+            host_name_en_label: 'યજમાનનું નામ (અંગ્રેજી)',
+            host_name_gu_label: 'યજમાનનું નામ (ગુજરાતી)',
+            host_name_placeholder: 'દા.ત. પટેલ પરિવાર'
         }
     });
 

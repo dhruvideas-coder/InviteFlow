@@ -76,6 +76,60 @@
 
         </div><!-- end Profile/Notifications grid -->
 
+        <!-- Host / Organizer (admin / super admin only) -->
+        <div v-if="!auth.isMember" class="card p-5 space-y-4">
+            <div>
+                <h3 class="font-semibold text-gray-900">{{ lang.t('host_profile_title') }}</h3>
+                <p class="text-xs text-gray-500 mt-0.5">{{ lang.t('host_profile_subtitle') }}</p>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="relative w-20 h-20 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
+                    <img v-if="hostPreview" :src="hostPreview" alt="" class="w-full h-full object-cover" />
+                    <svg v-else class="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a7.5 7.5 0 0115 0v.75H4.5v-.75z" />
+                    </svg>
+                </div>
+                <div class="space-y-2">
+                    <input ref="hostFileEl" type="file" accept="image/png,image/jpeg,image/webp" class="hidden" @change="onHostFile" />
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" @click="hostFileEl?.click()" class="btn btn-ghost btn-sm bg-gray-50 hover:bg-primary-50 hover:text-primary-600 text-xs">
+                            {{ lang.t('upload_host_image') }}
+                        </button>
+                        <button v-if="hostPreview" type="button" @click="removeHostImage" class="btn btn-ghost btn-sm text-xs text-red-500 hover:bg-red-50">
+                            {{ lang.t('remove') }}
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400">{{ lang.t('host_image_hint') }}</p>
+                </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="label">{{ lang.t('host_name_en_label') }}</label>
+                        <button type="button" @click="convertHostName" :disabled="hostConverting || !hostNameEn.trim()" class="btn btn-secondary btn-sm shrink-0 text-xs flex items-center gap-1 disabled:opacity-50">
+                            <svg v-if="hostConverting" class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                            {{ hostConverting ? lang.t('converting') : lang.t('auto_convert') }}
+                        </button>
+                    </div>
+                    <input v-model="hostNameEn" type="text" class="input" :placeholder="lang.t('host_name_placeholder')" />
+                </div>
+                <div class="form-group">
+                    <label class="label">{{ lang.t('host_name_gu_label') }}</label>
+                    <input v-model="hostNameGu" type="text" class="input" placeholder="પટેલ પરિવાર" />
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3">
+                <span v-if="hostError" class="text-xs text-red-600">{{ hostError }}</span>
+                <span v-else-if="hostSaved" class="text-xs text-green-600">{{ lang.t('saved') }}</span>
+                <button @click="saveHostProfile" :disabled="hostSaving" class="btn btn-primary disabled:opacity-50">
+                    {{ hostSaving ? lang.t('converting') : lang.t('save_changes') }}
+                </button>
+            </div>
+        </div>
+
         <!-- WhatsApp daily sending limit -->
         <div class="card p-5 space-y-4">
             <div class="flex items-start justify-between gap-3">
@@ -236,7 +290,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue';
+import { ref, computed, nextTick, watch, onMounted } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
 import { useLanguageStore } from '@/stores/language';
@@ -258,6 +312,110 @@ const settings = ref({
     email: auth.user?.email || '',
     org: 'My Organization',
 });
+
+// ── Host / Organizer profile ───────────────────────────────────────────
+const hostFileEl = ref(null);
+const hostNameEn = ref('');
+const hostNameGu = ref('');
+const hostConverting = ref(false);
+let hostConvertTimer = null;
+let suppressHostConvert = false;
+const hostImageUrl = ref(null); // currently saved image (server URL)
+const hostFile = ref(null);     // newly picked File, not yet saved
+const hostRemove = ref(false);  // user cleared the existing image
+const hostLocalPreview = ref(''); // object URL for a freshly picked file
+const hostSaving = ref(false);
+const hostSaved = ref(false);
+const hostError = ref('');
+
+const hostPreview = computed(() =>
+    hostLocalPreview.value || (hostRemove.value ? '' : hostImageUrl.value) || ''
+);
+
+function onHostFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    hostFile.value = file;
+    hostRemove.value = false;
+    if (hostLocalPreview.value) URL.revokeObjectURL(hostLocalPreview.value);
+    hostLocalPreview.value = URL.createObjectURL(file);
+}
+
+function removeHostImage() {
+    hostFile.value = null;
+    if (hostLocalPreview.value) URL.revokeObjectURL(hostLocalPreview.value);
+    hostLocalPreview.value = '';
+    hostRemove.value = true;
+    if (hostFileEl.value) hostFileEl.value.value = '';
+}
+
+/** Transliterate Latin text to the Gujarati script (same source as recipients). */
+async function translateToGujarati(text) {
+    if (!text) return '';
+    try {
+        const res = await fetch(
+            `https://inputtools.google.com/request?text=${encodeURIComponent(text)}&itc=gu-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8`
+        );
+        const data = await res.json();
+        if (data[0] === 'SUCCESS' && data[1]?.[0]?.[1]?.[0]) return data[1][0][1][0];
+    } catch {}
+    return '';
+}
+
+async function convertHostName() {
+    const text = hostNameEn.value.trim();
+    if (!text) return;
+    hostConverting.value = true;
+    try {
+        const result = await translateToGujarati(text);
+        if (result) hostNameGu.value = result;
+    } finally {
+        hostConverting.value = false;
+    }
+}
+
+// Auto-fill the Gujarati name as the admin types English (debounced), mirroring
+// the recipient form. Manual edits to the Gujarati field are preserved.
+watch(hostNameEn, (val) => {
+    clearTimeout(hostConvertTimer);
+    if (suppressHostConvert) return;
+    if (!val || !val.trim()) { hostNameGu.value = ''; return; }
+    hostConvertTimer = setTimeout(convertHostName, 700);
+});
+
+async function loadHostProfile() {
+    const { data } = await axios.get('/api/host-profile');
+    // Don't let loading saved values retrigger the auto-converter.
+    suppressHostConvert = true;
+    hostNameEn.value = data.host_name_en || '';
+    hostNameGu.value = data.host_name_gu || '';
+    hostImageUrl.value = data.image_url || null;
+    nextTick(() => { suppressHostConvert = false; });
+}
+
+async function saveHostProfile() {
+    hostError.value = '';
+    hostSaving.value = true;
+    try {
+        const fd = new FormData();
+        fd.append('host_name_en', hostNameEn.value || '');
+        fd.append('host_name_gu', hostNameGu.value || '');
+        if (hostFile.value) fd.append('image', hostFile.value);
+        if (hostRemove.value) fd.append('remove', '1');
+        const { data } = await axios.post('/api/host-profile', fd);
+        hostImageUrl.value = data.image_url || null;
+        if (hostLocalPreview.value) URL.revokeObjectURL(hostLocalPreview.value);
+        hostLocalPreview.value = '';
+        hostFile.value = null;
+        hostRemove.value = false;
+        hostSaved.value = true;
+        setTimeout(() => { hostSaved.value = false; }, 2500);
+    } catch (e) {
+        hostError.value = e.response?.data?.message || lang.t('error_saving');
+    } finally {
+        hostSaving.value = false;
+    }
+}
 
 // ── WhatsApp message templates ─────────────────────────────────────────
 const activeLang = ref('en');
@@ -326,6 +484,7 @@ async function saveWaTemplates() {
 onMounted(async () => {
     fetchQuota(true);
     if (auth.isMember) return;
+    await loadHostProfile();
     const t = await loadTemplates();
     draft.value = { en: t.en, gu: t.gu };
 });

@@ -186,9 +186,34 @@ class InvitationLinkController extends Controller
      */
     public function show(string $id)
     {
-        return InvitationLink::with(['recipient', 'document.fields'])
+        $link = InvitationLink::with(['recipient', 'document.fields', 'document.user.parent'])
             ->where('token', $id)
             ->firstOrFail();
+
+        // Resolve the host/organizer from the document owner's tenant (admin).
+        // Only a whitelisted, public-safe subset is exposed — never the full
+        // user record (which holds email/google_id).
+        $host = optional($link->document?->user)->tenant();
+
+        // The host name follows the document's language: Gujarati documents show
+        // the Gujarati name, everything else the English one — each falling back
+        // to the other variant, then to the admin's account name.
+        $hostName = null;
+        if ($host) {
+            $hostName = $link->document?->language === 'gu'
+                ? ($host->host_name_gu ?: $host->host_name_en)
+                : ($host->host_name_en ?: $host->host_name_gu);
+            $hostName = $hostName ?: $host->name;
+        }
+
+        $payload = $link->toArray();
+        $payload['host'] = $host ? [
+            'name'         => $hostName,
+            'organization' => $host->organization,
+            'image_url'    => $host->host_image_url,
+        ] : null;
+
+        return response()->json($payload);
     }
 
     /**

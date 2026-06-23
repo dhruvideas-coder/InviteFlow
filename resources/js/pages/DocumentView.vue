@@ -61,6 +61,22 @@
             <div v-else class="w-full max-w-4xl space-y-8 animate-in slide-in-from-bottom-12 duration-1000">
                 <!-- Info Card -->
                 <div v-if="doc" class="bg-white rounded-[2.5rem] p-6 sm:p-8 shadow-sm border border-slate-200/60 text-center space-y-2">
+                    <!-- Host / organizer (admin) -->
+                    <div v-if="host && (host.image_url || host.name)" class="flex flex-col items-center gap-2 mb-4">
+                        <img
+                            v-if="host.image_url"
+                            :src="host.image_url"
+                            :alt="host.name || ''"
+                            class="w-20 h-20 rounded-full object-cover ring-4 ring-primary-50 shadow-md select-none"
+                        />
+                        <div
+                            v-else
+                            class="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-white flex items-center justify-center text-2xl font-black select-none"
+                        >{{ hostInitials }}</div>
+                        <div v-if="host.name" class="text-sm font-bold text-slate-700 leading-tight">{{ host.name }}</div>
+                        <div v-if="host.organization" class="text-xs font-medium text-slate-400">{{ host.organization }}</div>
+                    </div>
+
                     <div class="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 text-[10px] font-bold text-primary-700 uppercase tracking-wider mb-2">
                         {{ lang.t('personal_invitation') }}
                     </div>
@@ -196,6 +212,17 @@ const expired = ref(false);
 
 const loading = ref(true);
 const doc = ref(null);
+const host = ref(null);
+
+const hostInitials = computed(() => {
+    const name = host.value?.name || '';
+    return name
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((w) => w[0].toUpperCase())
+        .join('') || '★';
+});
 const recipient = ref({
     name_en: 'Sureshbhai Patel',
     name_gu: 'સુરેશભાઈ પટેલ',
@@ -288,6 +315,7 @@ async function fetchInvitationData() {
         const { data: link } = await axios.get(`/api/invitation-links/${token}`);
         
         doc.value = link.document;
+        host.value = link.host || null;
         recipient.value = {
             name_en: link.recipient.name_en,
             name_gu: link.recipient.name_gu,

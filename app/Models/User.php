@@ -20,6 +20,9 @@ class User extends Authenticatable
         'avatar',
         'role',
         'organization',
+        'host_name_en',
+        'host_name_gu',
+        'host_image_path',
         'is_active',
         'email_verified_at',
     ];
@@ -41,6 +44,22 @@ class User extends Authenticatable
     public function parent()
     {
         return $this->belongsTo(User::class, 'parent_id');
+    }
+
+    /**
+     * The tenant (admin) that owns shared settings — message templates, the
+     * host profile, etc. Members inherit these from their parent admin;
+     * everyone else owns their own.
+     */
+    public function tenant(): User
+    {
+        return $this->isMember() && $this->parent_id ? ($this->parent ?? $this) : $this;
+    }
+
+    /** Public URL for the admin's host/organizer image, if any. */
+    public function getHostImageUrlAttribute(): ?string
+    {
+        return $this->host_image_path ? '/file/' . $this->host_image_path : null;
     }
 
     public function children()

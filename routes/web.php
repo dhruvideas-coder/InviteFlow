@@ -45,6 +45,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/message-templates', [\App\Http\Controllers\Api\MessageTemplateController::class, 'index']);
     Route::put('/api/message-templates', [\App\Http\Controllers\Api\MessageTemplateController::class, 'update']);
 
+    Route::get('/api/host-profile', [\App\Http\Controllers\Api\HostProfileController::class, 'show']);
+    Route::post('/api/host-profile', [\App\Http\Controllers\Api\HostProfileController::class, 'update']);
+
     Route::get('/api/whatsapp-quota', [\App\Http\Controllers\Api\InvitationLinkController::class, 'quota']);
 
     Route::get('/api/invitation-links', [\App\Http\Controllers\Api\InvitationLinkController::class, 'index']);
