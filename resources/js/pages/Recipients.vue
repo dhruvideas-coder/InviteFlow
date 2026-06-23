@@ -573,11 +573,22 @@
                             </div>
                         </div>
 
+                        <!-- Daily limit notice -->
+                        <div v-if="blocked" class="mx-6 mb-2 flex items-start gap-3 p-3 rounded-2xl bg-amber-50 border border-amber-200">
+                            <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/></svg>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-amber-900">{{ lang.t('whatsapp_limit_reached_title') }}</p>
+                                <p class="text-xs text-amber-700 mt-0.5">{{ lang.t('whatsapp_limit_reached_msg', { limit: quota.limit }) }}</p>
+                                <p v-if="quota.resets_at" class="text-xs font-medium text-amber-800 mt-1">{{ lang.t('whatsapp_limit_resets', { time: formatResetTime(quota.resets_at) }) }}</p>
+                            </div>
+                        </div>
+
                         <!-- Footer -->
                         <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between shrink-0">
                             <button @click="showWhatsAppModal = false" class="btn btn-secondary">{{ lang.t('cancel') }}</button>
-                            <button 
-                                @click="generateAndSend" 
+                            <button
+                                v-if="!blocked"
+                                @click="generateAndSend"
                                 class="btn btn-primary bg-green-600 hover:bg-green-700 border-green-600 gap-2 px-6"
                                 :disabled="!selectedDocId || sending"
                             >
@@ -1032,11 +1043,18 @@ import * as XLSX from 'xlsx';
 import { formatMobile } from '@/utils/format';
 import { useViewMode } from '@/composables/useViewMode';
 import { useMessageTemplate } from '@/composables/useMessageTemplate';
+import { useWhatsappQuota } from '@/composables/useWhatsappQuota';
 import ViewToggle from '@/components/ViewToggle.vue';
 
 const lang = useLanguageStore();
 const { viewMode } = useViewMode('recipients');
 const { buildMessage } = useMessageTemplate();
+const { quota, blocked, fetchQuota, setQuota } = useWhatsappQuota();
+
+function formatResetTime(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
 
 const search = ref('');
 const villageFilter = ref('');
@@ -1712,8 +1730,8 @@ function formatDate(dateStr) {
 }
 
 async function generateAndSend() {
-    if (!selectedRecipient.value || !selectedDocId.value) return;
-    
+    if (!selectedRecipient.value || !selectedDocId.value || blocked.value) return;
+
     sending.value = true;
     try {
         // Create link via API
@@ -1722,6 +1740,7 @@ async function generateAndSend() {
             document_id: selectedDocId.value,
             via: 'WhatsApp'
         });
+        setQuota(data.whatsapp_quota);
 
         const token = data.token;
         const link = `${window.location.origin}/doc/view/${token}`;
@@ -1751,13 +1770,16 @@ async function generateAndSend() {
         
         showWhatsAppModal.value = false;
     } catch (err) {
-        console.error('Failed to generate link:', err);
+        // 429 → daily WhatsApp cap reached; sync quota so buttons hide.
+        if (err.response?.status === 429) setQuota(err.response.data?.whatsapp_quota);
+        else console.error('Failed to generate link:', err);
     } finally {
         sending.value = false;
     }
 }
 
 onMounted(() => {
+    fetchQuota();
     fetchDocuments();
     fetchRecipients();
 });

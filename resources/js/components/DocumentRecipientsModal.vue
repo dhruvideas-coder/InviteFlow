@@ -79,6 +79,18 @@
                             </div>
                         </div>
 
+                        <!-- WhatsApp daily limit notice -->
+                        <div v-if="blocked" class="flex items-start gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200">
+                            <div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-amber-900">{{ lang.t('whatsapp_limit_reached_title') }}</p>
+                                <p class="text-xs text-amber-700 mt-0.5">{{ lang.t('whatsapp_limit_reached_msg', { limit: quota.limit }) }}</p>
+                                <p v-if="quota.resets_at" class="text-xs font-medium text-amber-800 mt-1">{{ lang.t('whatsapp_limit_resets', { time: formatResetTime(quota.resets_at) }) }}</p>
+                            </div>
+                        </div>
+
                         <!-- Filters -->
                         <div class="flex flex-col sm:flex-row gap-3">
                             <div class="relative flex-1">
@@ -160,7 +172,7 @@
                                             </td>
                                             <td>
                                                 <div class="flex items-center gap-1 justify-end">
-                                                    <button @click="sendWhatsApp(r)" :disabled="sendingIds.has(r.id)" class="btn btn-ghost btn-sm text-green-600 hover:text-green-700 hover:bg-green-50 disabled:opacity-50" title="Send WhatsApp">
+                                                    <button v-if="!blocked" @click="sendWhatsApp(r)" :disabled="sendingIds.has(r.id)" class="btn btn-ghost btn-sm text-green-600 hover:text-green-700 hover:bg-green-50 disabled:opacity-50" title="Send WhatsApp">
                                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
                                                     </button>
                                                     <button @click="openDocPreviewModal(r)" class="btn btn-ghost btn-sm text-violet-500 hover:text-violet-600 hover:bg-violet-50" title="Preview Document">
@@ -359,7 +371,8 @@
                                             <svg class="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.826a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                                         </div>
                                         <p class="text-gray-500 text-sm">{{ lang.t('no_links_generated') }}</p>
-                                        <button @click="showLinksModal = false; sendWhatsApp(selectedRecipient)" class="btn btn-primary btn-sm mt-4">{{ lang.t('generate_first_link') }}</button>
+                                        <button v-if="!blocked" @click="showLinksModal = false; sendWhatsApp(selectedRecipient)" class="btn btn-primary btn-sm mt-4">{{ lang.t('generate_first_link') }}</button>
+                                        <p v-else class="text-xs text-amber-600 mt-4">{{ lang.t('whatsapp_limit_reached_title') }}</p>
                                     </div>
                                     <div v-else class="space-y-3">
                                         <div v-for="link in selectedRecipient.invitation_links" :key="link.id" class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-primary-200 transition-colors">
@@ -460,8 +473,10 @@ import PdfCanvas from '@/components/PdfCanvas.vue';
 import { useLanguageStore } from '@/stores/language';
 import { formatMobile } from '@/utils/format';
 import { useMessageTemplate } from '@/composables/useMessageTemplate';
+import { useWhatsappQuota } from '@/composables/useWhatsappQuota';
 
 const { buildMessage } = useMessageTemplate();
+const { quota, blocked, fetchQuota, setQuota } = useWhatsappQuota();
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -592,7 +607,7 @@ const sendingIds        = ref(new Set());
 const copiedToken       = ref(null);
 
 async function sendWhatsApp(recipient) {
-    if (!props.document || sendingIds.value.has(recipient.id)) return;
+    if (!props.document || blocked.value || sendingIds.value.has(recipient.id)) return;
     sendingIds.value = new Set([...sendingIds.value, recipient.id]);
     try {
         const { data } = await axios.post('/api/invitation-links', {
@@ -600,6 +615,7 @@ async function sendWhatsApp(recipient) {
             document_id:  props.document.id,
             via:          'WhatsApp',
         });
+        setQuota(data.whatsapp_quota);
         const doc  = props.document;
         const link = `${window.location.origin}/doc/view/${data.token}`;
         const msg  = encodeURIComponent(await buildMessage(recipient, doc, link));
@@ -610,6 +626,10 @@ async function sendWhatsApp(recipient) {
             recipients.value[idx].invitation_links ??= [];
             recipients.value[idx].invitation_links.unshift({ id: data.id, token: data.token, created_at: data.created_at, document: doc });
         }
+    } catch (err) {
+        // 429 → daily WhatsApp cap reached; sync quota so buttons hide.
+        if (err.response?.status === 429) setQuota(err.response.data?.whatsapp_quota);
+        else throw err;
     } finally {
         const next = new Set(sendingIds.value);
         next.delete(recipient.id);
@@ -691,10 +711,17 @@ function roleBadgeClass(role) {
 // ── Open / Close ───────────────────────────────────────────────────────
 function close() { search.value = ''; villageFilter.value = ''; emit('update:modelValue', false); }
 
+// ── WhatsApp daily quota ───────────────────────────────────────────────
+function formatResetTime(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
 watch(() => props.modelValue, val => {
     if (val && props.document) {
         recipients.value = [];
         pagination.value = { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
+        fetchQuota();
         fetchRecipients(1);
         if (!docs.value.find(d => d.id === props.document.id)) docs.value = [props.document, ...docs.value];
         previewDocSelectedId.value = props.document.id;

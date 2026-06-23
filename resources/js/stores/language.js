@@ -283,6 +283,15 @@ export const useLanguageStore = defineStore('language', () => {
             token_link: 'Link',
             link_token_hint: 'Tip: {name}, {village} and {document} are optional. The {link} placeholder is required so the invitation link is always included.',
             link_token_required: 'Both messages must include the {link} placeholder.',
+            whatsapp_limit_title: 'WhatsApp Daily Limit',
+            whatsapp_limit_desc: 'To protect your account from spam blocks, each user can send up to {limit} WhatsApp invitations every 24 hours.',
+            whatsapp_limit_active: 'Active',
+            whatsapp_limit_paused: 'Paused',
+            whatsapp_limit_used: '{used} of {limit} sent in the last 24 hours',
+            whatsapp_limit_remaining: '{remaining} remaining',
+            whatsapp_limit_reached_title: 'Daily WhatsApp limit reached',
+            whatsapp_limit_reached_msg: 'You have sent all {limit} WhatsApp invitations allowed in a 24-hour period. Sending buttons are hidden until your limit resets.',
+            whatsapp_limit_resets: 'Sending resumes around {time}',
             saved: 'Saved'
         },
         gu: {
@@ -550,6 +559,15 @@ export const useLanguageStore = defineStore('language', () => {
             token_link: 'લિંક',
             link_token_hint: 'સૂચન: {name}, {village} અને {document} વૈકલ્પિક છે. {link} પ્લેસહોલ્ડર જરૂરી છે જેથી આમંત્રણ લિંક હંમેશા સામેલ રહે.',
             link_token_required: 'બંને સંદેશમાં {link} પ્લેસહોલ્ડર હોવું જરૂરી છે.',
+            whatsapp_limit_title: 'WhatsApp દૈનિક મર્યાદા',
+            whatsapp_limit_desc: 'આપના ખાતાને સ્પામ બ્લોકથી બચાવવા, દરેક વપરાશકર્તા દર 24 કલાકમાં વધુમાં વધુ {limit} WhatsApp આમંત્રણ મોકલી શકે છે.',
+            whatsapp_limit_active: 'સક્રિય',
+            whatsapp_limit_paused: 'થોભાવેલ',
+            whatsapp_limit_used: 'છેલ્લા 24 કલાકમાં {limit} માંથી {used} મોકલ્યા',
+            whatsapp_limit_remaining: '{remaining} બાકી',
+            whatsapp_limit_reached_title: 'દૈનિક WhatsApp મર્યાદા પૂર્ણ થઈ',
+            whatsapp_limit_reached_msg: 'આપે 24 કલાકના સમયગાળામાં મંજૂર તમામ {limit} WhatsApp આમંત્રણ મોકલી દીધા છે. મર્યાદા રીસેટ થાય ત્યાં સુધી મોકલવાના બટન છુપાવેલ છે.',
+            whatsapp_limit_resets: '{time} આસપાસ મોકલવાનું ફરી શરૂ થશે',
             saved: 'સાચવ્યું'
         }
     });

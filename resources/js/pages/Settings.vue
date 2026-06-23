@@ -76,6 +76,53 @@
 
         </div><!-- end Profile/Notifications grid -->
 
+        <!-- WhatsApp daily sending limit -->
+        <div class="card p-5 space-y-4">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600 shrink-0">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">{{ lang.t('whatsapp_limit_title') }}</h3>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ lang.t('whatsapp_limit_desc', { limit: quota.limit }) }}</p>
+                    </div>
+                </div>
+                <span
+                    class="shrink-0 inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border"
+                    :class="quota.reached ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-100'"
+                >
+                    <span class="w-1.5 h-1.5 rounded-full" :class="quota.reached ? 'bg-amber-500' : 'bg-emerald-500'"></span>
+                    {{ quota.reached ? lang.t('whatsapp_limit_paused') : lang.t('whatsapp_limit_active') }}
+                </span>
+            </div>
+
+            <!-- Usage bar -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-medium text-gray-700">{{ lang.t('whatsapp_limit_used', { used: quota.used, limit: quota.limit }) }}</span>
+                    <span class="text-gray-500">{{ lang.t('whatsapp_limit_remaining', { remaining: quota.remaining }) }}</span>
+                </div>
+                <div class="h-2.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                    <div
+                        class="h-full rounded-full transition-all duration-500"
+                        :class="quota.reached ? 'bg-amber-500' : 'bg-green-500'"
+                        :style="{ width: Math.min(100, Math.round((quota.used / quota.limit) * 100)) + '%' }"
+                    ></div>
+                </div>
+            </div>
+
+            <!-- Reached message -->
+            <div v-if="quota.reached" class="flex items-start gap-3 p-3 rounded-2xl bg-amber-50 border border-amber-200">
+                <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/></svg>
+                <div class="min-w-0">
+                    <p class="text-sm font-bold text-amber-900">{{ lang.t('whatsapp_limit_reached_title') }}</p>
+                    <p class="text-xs text-amber-700 mt-0.5">{{ lang.t('whatsapp_limit_reached_msg', { limit: quota.limit }) }}</p>
+                    <p v-if="quota.resets_at" class="text-xs font-medium text-amber-800 mt-1">{{ lang.t('whatsapp_limit_resets', { time: formatResetTime(quota.resets_at) }) }}</p>
+                </div>
+            </div>
+        </div>
+
         <!-- WhatsApp message templates (admin / super admin only) -->
         <div v-if="!auth.isMember" class="card p-5 space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -160,10 +207,17 @@ import { ref, computed, nextTick, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useLanguageStore } from '@/stores/language';
 import { useMessageTemplate, renderTemplate } from '@/composables/useMessageTemplate';
+import { useWhatsappQuota } from '@/composables/useWhatsappQuota';
 
 const auth = useAuthStore();
 const lang = useLanguageStore();
 const { loadTemplates, saveTemplates } = useMessageTemplate();
+const { quota, fetchQuota } = useWhatsappQuota();
+
+function formatResetTime(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
 
 const settings = ref({
     name: auth.user?.name || '',
@@ -236,6 +290,7 @@ async function saveWaTemplates() {
 }
 
 onMounted(async () => {
+    fetchQuota(true);
     if (auth.isMember) return;
     const t = await loadTemplates();
     draft.value = { en: t.en, gu: t.gu };

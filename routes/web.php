@@ -40,6 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/message-templates', [\App\Http\Controllers\Api\MessageTemplateController::class, 'index']);
     Route::put('/api/message-templates', [\App\Http\Controllers\Api\MessageTemplateController::class, 'update']);
 
+    Route::get('/api/whatsapp-quota', [\App\Http\Controllers\Api\InvitationLinkController::class, 'quota']);
+
     Route::get('/api/invitation-links', [\App\Http\Controllers\Api\InvitationLinkController::class, 'index']);
     Route::post('/api/invitation-links', [\App\Http\Controllers\Api\InvitationLinkController::class, 'store']);
     Route::delete('/api/invitation-links/{link}', [\App\Http\Controllers\Api\InvitationLinkController::class, 'destroy']);
