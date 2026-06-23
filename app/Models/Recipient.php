@@ -13,6 +13,7 @@ class Recipient extends Model
         'village_en',
         'village_gu',
         'sent',
+        'created_by_user_id',
     ];
 
     protected $casts = [
@@ -22,5 +23,10 @@ class Recipient extends Model
     public function invitationLinks()
     {
         return $this->hasMany(InvitationLink::class);
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 }

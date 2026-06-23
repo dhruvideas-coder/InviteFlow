@@ -157,6 +157,49 @@
             </div>
         </div>
 
+        <!-- Deleted accounts (recovery) — super admin only -->
+        <div v-if="auth.isSuperAdmin" class="bg-white rounded-2xl shadow-sm border border-red-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-red-50/40">
+                <h3 class="font-semibold text-red-600">{{ lang.t('deleted_accounts') }}</h3>
+                <p class="text-xs text-gray-500 mt-0.5">{{ lang.t('deleted_accounts_desc') }}</p>
+            </div>
+
+            <div v-if="trashedLoading" class="px-6 py-8 text-center text-gray-400 text-sm">{{ lang.t('loading_users') }}</div>
+            <div v-else-if="trashedUsers.length === 0" class="px-6 py-10 text-center text-gray-400 text-sm">{{ lang.t('no_deleted_accounts') }}</div>
+
+            <ul v-else class="divide-y divide-gray-100">
+                <li v-for="user in trashedUsers" :key="user.id" class="flex flex-col sm:flex-row sm:items-center gap-3 px-6 py-4">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold shrink-0">
+                            {{ user.name.charAt(0).toUpperCase() }}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-semibold text-gray-900 truncate">{{ user.name }}</div>
+                            <div class="text-sm text-gray-500 truncate">{{ user.email }}</div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 flex-wrap text-xs">
+                        <span v-if="user.role === 'super_admin'" class="px-2.5 py-1 rounded-md font-semibold bg-amber-100 text-amber-700">{{ lang.t('super_admin') }}</span>
+                        <span v-else-if="user.role === 'admin'" class="px-2.5 py-1 rounded-md font-semibold bg-primary-100 text-primary-700">{{ lang.t('admin') }}</span>
+                        <span v-else class="px-2.5 py-1 rounded-md font-semibold bg-gray-100 text-gray-600">{{ lang.t('member') }}</span>
+                        <span class="text-gray-400">{{ lang.t('deleted_on') }}: {{ new Date(user.deleted_at).toLocaleDateString() }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-2 sm:ml-auto">
+                        <button @click="restoreUser(user)" class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                            {{ lang.t('restore') }}
+                        </button>
+                        <button @click="forceDeleteUser(user)" class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            {{ lang.t('delete_permanently') }}
+                        </button>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
         <!-- Modal (Create / Edit) -->
         <Transition name="fade">
             <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -211,16 +254,30 @@
                 </div>
             </div>
         </Transition>
+
+        <!-- Shared confirmation dialog (delete / restore / permanent delete) -->
+        <ConfirmModal
+            :show="confirmDialog.show"
+            :title="confirmDialog.title"
+            :message="confirmDialog.message"
+            :confirm-label="confirmDialog.confirmLabel"
+            :loading-label="confirmDialog.loadingLabel"
+            :variant="confirmDialog.variant"
+            :loading="confirmDialog.loading"
+            @confirm="onConfirmDialog"
+            @cancel="closeConfirmDialog"
+        />
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
 import { useLanguageStore } from '@/stores/language';
 import { useViewMode } from '@/composables/useViewMode';
 import ViewToggle from '@/components/ViewToggle.vue';
+import ConfirmModal from '@/components/ConfirmModal.vue';
 
 const auth = useAuthStore();
 const lang = useLanguageStore();
@@ -234,6 +291,52 @@ const showModal = ref(false);
 const editMode = ref(false);
 const saving = ref(false);
 const currentUserId = ref(null);
+
+const trashedUsers = ref([]);
+const trashedLoading = ref(false);
+
+// Single shared confirmation dialog. `action` holds the async callback to run
+// when the user confirms; it should return normally on success or throw to
+// keep the dialog open.
+const confirmDialog = reactive({
+    show: false,
+    title: '',
+    message: '',
+    confirmLabel: '',
+    loadingLabel: '',
+    variant: 'danger',
+    loading: false,
+    action: null,
+});
+
+function openConfirmDialog(opts) {
+    error.value = '';
+    success.value = '';
+    Object.assign(confirmDialog, { show: true, loading: false, loadingLabel: '', ...opts });
+}
+
+function closeConfirmDialog() {
+    if (confirmDialog.loading) return;
+    confirmDialog.show = false;
+    confirmDialog.action = null;
+}
+
+async function onConfirmDialog() {
+    if (!confirmDialog.action) return;
+    confirmDialog.loading = true;
+    try {
+        await confirmDialog.action();
+        confirmDialog.show = false;
+        confirmDialog.action = null;
+    } catch {
+        // Worker already surfaced the error banner; just close the dialog.
+        confirmDialog.show = false;
+        confirmDialog.action = null;
+    } finally {
+        confirmDialog.loading = false;
+    }
+}
+
 const form = ref({
     name: '',
     email: '',
@@ -247,7 +350,60 @@ const adminsOnly = computed(() => {
 
 onMounted(() => {
     fetchUsers();
+    if (auth.isSuperAdmin) fetchTrashed();
 });
+
+const fetchTrashed = async () => {
+    if (!auth.isSuperAdmin) return;
+    trashedLoading.value = true;
+    try {
+        const response = await axios.get('/api/users/trashed');
+        trashedUsers.value = response.data;
+    } catch (err) {
+        console.error(err);
+    } finally {
+        trashedLoading.value = false;
+    }
+};
+
+const restoreUser = (user) => {
+    openConfirmDialog({
+        title: lang.t('restore'),
+        message: lang.t('confirm_restore_user', { name: user.name }),
+        confirmLabel: lang.t('restore'),
+        variant: 'success',
+        action: async () => {
+            try {
+                await axios.post(`/api/users/${user.id}/restore`);
+                success.value = lang.t('account_restored');
+                await Promise.all([fetchUsers(), fetchTrashed()]);
+            } catch (err) {
+                error.value = err.response?.data?.message || lang.t('failed_restore_user');
+                throw err;
+            }
+        },
+    });
+};
+
+const forceDeleteUser = (user) => {
+    openConfirmDialog({
+        title: lang.t('delete_permanently'),
+        message: lang.t('confirm_force_delete_user', { name: user.name }),
+        confirmLabel: lang.t('delete_permanently'),
+        loadingLabel: lang.t('deleting'),
+        variant: 'danger',
+        action: async () => {
+            try {
+                await axios.delete(`/api/users/${user.id}/force`);
+                success.value = lang.t('account_purged');
+                await fetchTrashed();
+            } catch (err) {
+                error.value = err.response?.data?.message || lang.t('failed_purge_user');
+                throw err;
+            }
+        },
+    });
+};
 
 const fetchUsers = async () => {
     loading.value = true;
@@ -312,16 +468,25 @@ const saveUser = async () => {
     }
 };
 
-const confirmDelete = async (user) => {
-    if (confirm(lang.t('confirm_delete_user', { name: user.name }))) {
-        try {
-            await axios.delete(`/api/users/${user.id}`);
-            success.value = lang.t('user_deleted');
-            await fetchUsers();
-        } catch (err) {
-            error.value = err.response?.data?.message || lang.t('failed_delete_user');
-        }
-    }
+const confirmDelete = (user) => {
+    openConfirmDialog({
+        title: lang.t('delete_account'),
+        message: lang.t('confirm_delete_user', { name: user.name }),
+        confirmLabel: lang.t('delete'),
+        loadingLabel: lang.t('deleting'),
+        variant: 'danger',
+        action: async () => {
+            try {
+                await axios.delete(`/api/users/${user.id}`);
+                success.value = lang.t('user_deleted');
+                await fetchUsers();
+                if (auth.isSuperAdmin) await fetchTrashed();
+            } catch (err) {
+                error.value = err.response?.data?.message || lang.t('failed_delete_user');
+                throw err;
+            }
+        },
+    });
 };
 </script>
 

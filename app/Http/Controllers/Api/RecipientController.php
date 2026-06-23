@@ -79,6 +79,8 @@ class RecipientController extends Controller
             'village_gu' => 'nullable|string|max:255',
         ]);
 
+        $validated['created_by_user_id'] = $request->user()?->id;
+
         return Recipient::create($validated);
     }
 

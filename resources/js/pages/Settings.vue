@@ -196,14 +196,48 @@
                     <p class="text-sm font-medium text-gray-900">{{ lang.t('delete_account') }}</p>
                     <p class="text-xs text-gray-500">{{ lang.t('delete_account_desc') }}</p>
                 </div>
-                <button class="btn btn-danger btn-sm">{{ lang.t('delete_account') }}</button>
+                <button @click="showDeleteModal = true" class="btn btn-danger btn-sm">{{ lang.t('delete_account') }}</button>
             </div>
         </div>
+
+        <!-- Delete account confirmation modal -->
+        <Transition name="fade">
+            <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="closeDeleteModal"></div>
+
+                <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+                    <div class="p-6 space-y-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center text-red-600 shrink-0">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <h3 class="text-lg font-bold text-gray-900">{{ lang.t('delete_account_confirm_title') }}</h3>
+                                <p class="text-sm text-gray-500 mt-1">{{ lang.t('delete_account_confirm_msg') }}</p>
+                            </div>
+                        </div>
+
+                        <div v-if="deleteError" class="p-3 rounded-xl bg-red-50 text-red-600 text-sm border border-red-100">
+                            {{ deleteError }}
+                        </div>
+
+                        <div class="flex justify-end gap-3 pt-2">
+                            <button type="button" @click="closeDeleteModal" :disabled="deleting" class="btn btn-ghost btn-sm disabled:opacity-50">{{ lang.t('cancel') }}</button>
+                            <button type="button" @click="deleteAccount" :disabled="deleting" class="btn btn-danger btn-sm flex items-center gap-2 disabled:opacity-70">
+                                <svg v-if="deleting" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                {{ deleting ? lang.t('deleting') : lang.t('delete_account_confirm_btn') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Transition>
     </div>
 </template>
 
 <script setup>
 import { ref, computed, nextTick, onMounted } from 'vue';
+import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
 import { useLanguageStore } from '@/stores/language';
 import { useMessageTemplate, renderTemplate } from '@/composables/useMessageTemplate';
@@ -295,6 +329,33 @@ onMounted(async () => {
     const t = await loadTemplates();
     draft.value = { en: t.en, gu: t.gu };
 });
+
+// ── Delete account ─────────────────────────────────────────────────────
+const showDeleteModal = ref(false);
+const deleting = ref(false);
+const deleteError = ref('');
+
+function closeDeleteModal() {
+    if (deleting.value) return;
+    showDeleteModal.value = false;
+    deleteError.value = '';
+}
+
+async function deleteAccount() {
+    deleting.value = true;
+    deleteError.value = '';
+    try {
+        await axios.delete('/api/account', {
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+        });
+        // Account (and members) soft-deleted and session invalidated server-side.
+        auth.user = null;
+        window.location.href = '/login';
+    } catch (e) {
+        deleteError.value = e.response?.data?.message || lang.t('delete_account_failed');
+        deleting.value = false;
+    }
+}
 
 const notifications = ref([
     { key: 'link_click', labelKey: 'link_opened', descKey: 'link_opened_desc', enabled: true },

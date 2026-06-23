@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Recipient;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -25,6 +27,101 @@ class UserController extends Controller
         }
 
         return response()->json($users);
+    }
+
+    /**
+     * List soft-deleted accounts (admins and members). Super admin only —
+     * this is the recovery/recycle-bin view from which users can be restored
+     * or permanently removed.
+     */
+    public function trashed(Request $request)
+    {
+        if (!$request->user()->isSuperAdmin()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $users = User::onlyTrashed()
+            ->with(['parent' => fn ($q) => $q->withTrashed()])
+            ->orderBy('deleted_at', 'desc')
+            ->get();
+
+        return response()->json($users);
+    }
+
+    /**
+     * Restore a soft-deleted account back to active. When an admin is restored
+     * their members (that were removed together with them) are restored too.
+     * Super admin only.
+     */
+    public function restore(Request $request, User $user)
+    {
+        if (!$request->user()->isSuperAdmin()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if (!$user->trashed()) {
+            return response()->json(['message' => 'This account is already active.'], 400);
+        }
+
+        $user->restore();
+
+        $restoredMembers = 0;
+        if ($user->isAdmin()) {
+            $restoredMembers = User::onlyTrashed()
+                ->where('parent_id', $user->id)
+                ->where('role', 'member')
+                ->restore();
+        }
+
+        return response()->json([
+            'message' => 'Account restored successfully',
+            'restored_members' => $restoredMembers,
+            'user' => $user,
+        ]);
+    }
+
+    /**
+     * Permanently delete a soft-deleted account. When an admin is purged their
+     * members are purged with them. Super admin only, and the account must
+     * already be soft-deleted (a safety gate against accidental hard deletes).
+     */
+    public function forceDelete(Request $request, User $user)
+    {
+        if (!$request->user()->isSuperAdmin()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if (!$user->trashed()) {
+            return response()->json(['message' => 'Only deleted accounts can be permanently removed.'], 400);
+        }
+
+        DB::transaction(function () use ($user) {
+            // Everyone whose data gets purged: the account itself plus, for an
+            // admin, all of the members they own.
+            $memberIds = $user->isAdmin()
+                ? User::withTrashed()
+                    ->where('parent_id', $user->id)
+                    ->where('role', 'member')
+                    ->pluck('id')
+                : collect();
+
+            // Copy before pushing so $memberIds is not mutated.
+            $ownerIds = collect($memberIds)->push($user->id);
+
+            // Delete recipients these accounts added FIRST, while their owner
+            // id is still set. Each recipient's invitation links cascade away
+            // via the recipient_id foreign key.
+            Recipient::whereIn('created_by_user_id', $ownerIds)->delete();
+
+            // Then permanently remove the member accounts and the account itself.
+            if ($memberIds->isNotEmpty()) {
+                User::withTrashed()->whereIn('id', $memberIds)->forceDelete();
+            }
+
+            $user->forceDelete();
+        });
+
+        return response()->json(['message' => 'Account permanently deleted']);
     }
 
     public function store(Request $request)

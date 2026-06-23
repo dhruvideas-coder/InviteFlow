@@ -16,10 +16,15 @@ Route::post('/auth/logout', [GoogleAuthController::class, 'logout'])->name('auth
 Route::get('/api/user', [AuthController::class, 'user'])->name('api.user');
 
 Route::middleware('auth')->group(function () {
+    Route::delete('/api/account', [AuthController::class, 'deleteAccount']);
+
     Route::get('/api/users', [\App\Http\Controllers\Api\UserController::class, 'index']);
+    Route::get('/api/users/trashed', [\App\Http\Controllers\Api\UserController::class, 'trashed']);
     Route::post('/api/users', [\App\Http\Controllers\Api\UserController::class, 'store']);
     Route::put('/api/users/{user}', [\App\Http\Controllers\Api\UserController::class, 'update']);
     Route::delete('/api/users/{user}', [\App\Http\Controllers\Api\UserController::class, 'destroy']);
+    Route::post('/api/users/{user}/restore', [\App\Http\Controllers\Api\UserController::class, 'restore'])->withTrashed();
+    Route::delete('/api/users/{user}/force', [\App\Http\Controllers\Api\UserController::class, 'forceDelete'])->withTrashed();
 
     Route::get('/api/documents', [DocumentController::class, 'index']);
     Route::post('/api/documents', [DocumentController::class, 'store']);
