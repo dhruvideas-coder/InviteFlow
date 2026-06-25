@@ -5,8 +5,7 @@
             class="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-gray-100 transition-all duration-200 border border-transparent hover:border-gray-200 group"
             :class="{ 'bg-gray-100 border-gray-200': isOpen }"
         >
-            <span class="text-lg leading-none">{{ currentLanguage.flag }}</span>
-            <span class="text-sm font-semibold text-gray-700 hidden sm:block">{{ currentLanguage.name }}</span>
+            <span class="text-sm font-semibold text-gray-700">{{ currentLanguage.name }}</span>
             <ChevronDown 
                 class="w-4 h-4 text-gray-400 transition-transform duration-200" 
                 :class="{ 'rotate-180': isOpen }"
@@ -23,7 +22,7 @@
         >
             <div 
                 v-if="isOpen"
-                class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 overflow-hidden"
+                class="absolute right-0 mt-2 w-40 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 overflow-hidden"
             >
                 <div class="px-4 py-2 mb-1">
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Select Language</p>
@@ -36,7 +35,6 @@
                     class="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-primary-50 group"
                     :class="langStore.currentLocale === code ? 'text-primary-700 bg-primary-50/50 font-bold' : 'text-gray-600 hover:text-primary-600'"
                 >
-                    <span class="text-lg leading-none">{{ lang.flag }}</span>
                     <span class="flex-1 text-left">{{ lang.name }}</span>
                     <Check v-if="langStore.currentLocale === code" class="w-4 h-4 text-primary-500" />
                 </button>
