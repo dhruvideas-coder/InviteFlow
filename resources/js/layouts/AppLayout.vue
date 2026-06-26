@@ -168,6 +168,14 @@
                 <RouterView />
             </main>
         </div>
+
+        <!-- Auto-logout warning -->
+        <IdleWarningModal
+            :show="showWarning"
+            :remaining="remaining"
+            @stay="stayActive"
+            @logout="auth.logout()"
+        />
     </div>
 </template>
 
@@ -178,6 +186,8 @@ import { useAuthStore } from '@/stores/auth';
 import { useLanguageStore } from '@/stores/language';
 import { useBreakpoints } from '@vueuse/core';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
+import IdleWarningModal from '@/components/IdleWarningModal.vue';
+import { useIdleTimer } from '@/composables/useIdleTimer';
 import {
     LayoutDashboard, FileText, Users, Link2, BarChart2,
     CreditCard, Settings, Shield, Building2, UserCog, Mail
@@ -192,6 +202,12 @@ const isDesktop = bp.greaterOrEqual('md');
 
 const sidebarOpen = ref(true);       // desktop collapse state
 const mobileMenuOpen = ref(false);   // mobile drawer state
+
+// Auto-logout on inactivity. Duration follows SESSION_LIFETIME (.env) via the
+// session-lifetime meta tag; warns 30s before logout.
+const { showWarning, remaining, stayActive } = useIdleTimer({
+    onTimeout: () => auth.logout(),
+});
 
 // Close mobile drawer on navigation
 watch(() => route.path, () => {

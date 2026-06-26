@@ -41,16 +41,17 @@
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ lang.t('user') }}</th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ lang.t('role') }}</th>
                             <th v-if="auth.isSuperAdmin" class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ lang.t('admin_parent') }}</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ lang.t('subscription') }}</th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ lang.t('joined_date') }}</th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">{{ lang.t('actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         <tr v-if="loading" class="animate-pulse">
-                            <td colspan="5" class="px-6 py-8 text-center text-gray-400">{{ lang.t('loading_users') }}</td>
+                            <td colspan="7" class="px-6 py-8 text-center text-gray-400">{{ lang.t('loading_users') }}</td>
                         </tr>
                         <tr v-else-if="users.length === 0">
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-400">{{ lang.t('no_users_found') }}</td>
+                            <td colspan="7" class="px-6 py-12 text-center text-gray-400">{{ lang.t('no_users_found') }}</td>
                         </tr>
                         <tr v-else v-for="user in users" :key="user.id" class="hover:bg-gray-50/50 transition-colors">
                             <td class="px-6 py-4">
@@ -73,6 +74,18 @@
                             <td v-if="auth.isSuperAdmin" class="px-6 py-4 text-sm text-gray-600">
                                 <span v-if="user.parent" class="text-primary-600 font-medium">{{ user.parent.name }}</span>
                                 <span v-else class="text-gray-400 italic">{{ lang.t('none') }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <template v-if="subscriptionFor(user)">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="px-2.5 py-1 rounded-md text-xs font-semibold w-fit" :class="subscriptionFor(user).badge">
+                                            {{ subscriptionFor(user).label }}<span v-if="subscriptionFor(user).inherited" class="font-normal opacity-70"> · {{ lang.t('inherited') }}</span>
+                                        </span>
+                                        <span class="text-xs font-medium text-gray-700">{{ subscriptionFor(user).price }} · {{ lang.t('lifetime') }}</span>
+                                        <span class="text-[11px] text-gray-400">{{ lang.t('subscribed_since', { date: formatSubDate(subscriptionFor(user).since) }) }}</span>
+                                    </div>
+                                </template>
+                                <span v-else class="text-xs text-gray-400 italic">{{ lang.t('platform_owner') }}</span>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 {{ new Date(user.created_at).toLocaleDateString() }}
@@ -140,6 +153,18 @@
                         <span v-if="user.parent" class="text-primary-600 font-medium">{{ user.parent.name }}</span>
                         <span v-else class="text-gray-400 italic">{{ lang.t('none') }}</span>
                     </div>
+
+                    <!-- Subscription -->
+                    <div v-if="subscriptionFor(user)" class="rounded-xl bg-gray-50 border border-gray-100 p-3 text-xs">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="px-2 py-0.5 rounded-md font-semibold" :class="subscriptionFor(user).badge">{{ subscriptionFor(user).label }}</span>
+                            <span class="font-bold text-gray-800">{{ subscriptionFor(user).price }}</span>
+                        </div>
+                        <div class="mt-1.5 text-gray-400">
+                            {{ lang.t('lifetime') }} · {{ lang.t('subscribed_since', { date: formatSubDate(subscriptionFor(user).since) }) }}<span v-if="subscriptionFor(user).inherited"> · {{ lang.t('inherited') }}</span>
+                        </div>
+                    </div>
+                    <div v-else class="text-xs text-gray-400 italic">{{ lang.t('platform_owner') }}</div>
 
                     <div class="flex items-center gap-2 pt-3 mt-auto border-t border-gray-50">
                         <template v-if="auth.isSuperAdmin || (auth.isAdmin && user.parent_id === auth.user.id)">
@@ -347,6 +372,30 @@ const form = ref({
 const adminsOnly = computed(() => {
     return users.value.filter(u => u.role === 'admin');
 });
+
+// ── Subscription details (STATIC demo data for testing) ────────────────
+// TODO: replace with real per-tenant plan data once the backend plan system
+// lands. Plans are lifetime (one-time). Prices are placeholders.
+const PLAN_META = {
+    basic:      { label: 'Basic',      price: '₹999',   badge: 'bg-gray-100 text-gray-600' },
+    pro:        { label: 'Pro',        price: '₹2,999', badge: 'bg-primary-100 text-primary-700' },
+    enterprise: { label: 'Enterprise', price: '₹9,999', badge: 'bg-amber-100 text-amber-700' },
+};
+
+// Members inherit their admin's plan; super admins are the platform owner.
+function planOwner(user) {
+    if (user.role === 'member') return user.parent || auth.user;
+    return user;
+}
+function subscriptionFor(user) {
+    const owner = planOwner(user);
+    if (!owner || owner.role === 'super_admin') return null;
+    const key = ['basic', 'pro', 'enterprise'][owner.id % 3]; // deterministic demo assignment
+    return { key, inherited: user.role === 'member', since: owner.created_at || user.created_at, ...PLAN_META[key] };
+}
+function formatSubDate(d) {
+    return d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+}
 
 onMounted(() => {
     fetchUsers();
