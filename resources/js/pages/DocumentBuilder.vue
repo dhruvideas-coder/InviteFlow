@@ -134,7 +134,12 @@
                                 </p>
                             </div>
                             <!-- Override in case detection is wrong -->
-                            <select v-model="form.language" :disabled="detectingLanguage" class="select w-auto text-xs py-1.5 bg-white border-gray-200">
+                            <button v-if="!detectingLanguage && languageAutoDetected && !showLangOverride" type="button"
+                                @click="showLangOverride = true"
+                                class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 underline underline-offset-2">
+                                Change
+                            </button>
+                            <select v-else v-model="form.language" :disabled="detectingLanguage" class="select w-auto text-xs py-1.5 bg-white border-gray-200 shrink-0">
                                 <option value="gu">Gujarati</option>
                                 <option value="en">English</option>
                             </select>
@@ -371,27 +376,31 @@
                                         <span class="font-bold truncate" :style="{ color: field.color }">{{ getTranslatedLabel(field) }}</span>
                                     </div>
 
-                                    <!-- Delete Icon -->
+                                    <!-- Delete Icon (top-left, all screens) -->
                                     <button
                                         @click.stop="removeField(i)"
                                         @touchstart.stop.prevent="removeField(i)"
-                                        class="absolute -top-2.5 -right-2.5 w-6 h-6 lg:w-5 lg:h-5 text-white rounded-full flex items-center justify-center transition-opacity shadow-md z-30"
+                                        class="absolute -top-2 -left-2 lg:-top-2.5 lg:-left-2.5 w-4 h-4 lg:w-6 lg:h-6 text-white rounded-full flex items-center justify-center ring-2 ring-white shadow-md transition-colors z-30"
                                         :class="[
-                                            field.field_type === 'village' ? 'bg-amber-600' : 'bg-red-500',
+                                            field.field_type === 'village' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-red-500 hover:bg-red-600',
                                             selectedFieldIndex === i ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'
                                         ]"
                                     >
-                                        <X class="w-3 h-3 stroke-[3px]" />
+                                        <X class="w-2.5 h-2.5 lg:w-3.5 lg:h-3.5 stroke-[3px]" />
                                     </button>
 
-                                    <!-- Resize handle -->
-                                    <div 
+                                    <!-- Resize handle (bottom-right, all screens) -->
+                                    <div
                                         v-if="selectedFieldIndex === i"
-                                        class="absolute -right-2 -bottom-2 w-5 h-5 lg:w-4 lg:h-4 rounded-full border-2 border-white shadow-md cursor-nwse-resize touch-none z-20"
-                                        :class="field.field_type === 'village' ? 'bg-amber-600' : 'bg-primary-600'"
+                                        class="absolute -right-2 -bottom-2 lg:-right-2.5 lg:-bottom-2.5 w-4 h-4 lg:w-6 lg:h-6 rounded-full ring-2 ring-white shadow-md cursor-nwse-resize touch-none flex items-center justify-center z-20"
+                                        :class="field.field_type === 'village' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-primary-600 hover:bg-primary-700'"
                                         @mousedown.stop.prevent="startResize($event, i)"
                                         @touchstart.stop.prevent="startResize($event, i)"
-                                    ></div>
+                                    >
+                                        <svg class="w-2.5 h-2.5 lg:w-3.5 lg:h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 20h11M20 20V9M20 20L9 9" />
+                                        </svg>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -549,6 +558,7 @@ const form = ref({
 // Language is auto-detected from the uploaded file (see handleFileSelect).
 const detectingLanguage = ref(false);
 const languageAutoDetected = ref(false);
+const showLangOverride = ref(false);
 
 const selectedFile = ref(null);
 const previewSrc = ref(null);
@@ -790,6 +800,8 @@ const startResize = (e, index) => {
     const p = getPoint(e);
     startX = p.x;
     startY = p.y;
+    startFieldX = field.x_percent;
+    startFieldY = field.y_percent;
     startFieldW = field.width_percent;
     startFieldH = field.height_percent;
     addMoveListeners();

@@ -445,18 +445,22 @@
                                                         Preview
                                                     </div>
                                                 </div>
+
+                                                <!-- Page navigation overlay -->
+                                                <div v-if="!isImage(previewDoc) && previewDocTotalPages > 1" class="absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none">
+                                                    <div class="flex items-center gap-2 bg-slate-900/90 backdrop-blur-md rounded-2xl px-4 py-1.5 pointer-events-auto shadow-2xl">
+                                                        <button @click="previewDocPage > 1 && previewDocPage--" :disabled="previewDocPage === 1"
+                                                            class="p-1 text-white/70 hover:text-white disabled:opacity-30 transition-colors">
+                                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                                                        </button>
+                                                        <span class="text-[10px] text-white tabular-nums px-2 font-bold">{{ previewDocPage }} / {{ previewDocTotalPages }}</span>
+                                                        <button @click="previewDocPage < previewDocTotalPages && previewDocPage++" :disabled="previewDocPage === previewDocTotalPages"
+                                                            class="p-1 text-white/70 hover:text-white disabled:opacity-30 transition-colors">
+                                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div v-if="!isImage(previewDoc) && previewDocTotalPages > 1" class="flex items-center justify-center gap-3">
-                                            <button @click="previewDocPage > 1 && previewDocPage--" :disabled="previewDocPage === 1" class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 text-sm font-medium text-gray-700 shadow-sm">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                                                Previous
-                                            </button>
-                                            <span class="text-sm font-bold text-gray-700 bg-gray-100 px-5 py-2 rounded-xl min-w-[110px] text-center">Page {{ previewDocPage }} / {{ previewDocTotalPages }}</span>
-                                            <button @click="previewDocPage < previewDocTotalPages && previewDocPage++" :disabled="previewDocPage === previewDocTotalPages" class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 text-sm font-medium text-gray-700 shadow-sm">
-                                                Next
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
