@@ -39,7 +39,7 @@ class GoogleAuthController extends Controller
             return redirect('/login?error=account_suspended');
         }
 
-        Auth::login($user, remember: true);
+        Auth::login($user);
 
         return redirect('/dashboard');
     }
